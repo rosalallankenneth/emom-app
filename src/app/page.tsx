@@ -3,6 +3,14 @@ import NewWorkoutModal from "@/components/new-workout-modal";
 import { getExerciseLabel } from "@/lib/exercises";
 import { getDashboardData } from "@/lib/data/dashboard";
 
+import {
+  Activity,
+  ArrowUpRight,
+  Clock3,
+  Dumbbell,
+  Repeat2,
+} from "lucide-react";
+
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-PH", {
     month: "short",
@@ -42,19 +50,19 @@ export default async function DashboardPage() {
       label: "Sessions logged",
       value: sessionCount.toLocaleString("en-PH"),
       detail: "Total completed workouts",
-      icon: "↗",
+      icon: Dumbbell,
     },
     {
       label: "Training time",
       value: formatDuration(totalMinutes),
       detail: "Time invested in training",
-      icon: "◷",
+      icon: Clock3,
     },
     {
       label: "Total repetitions",
       value: totalReps.toLocaleString("en-PH"),
       detail: "Duration × reps per minute",
-      icon: "↟",
+      icon: Repeat2,
     },
   ];
 
@@ -72,7 +80,7 @@ export default async function DashboardPage() {
               Your training, at a glance.
             </h1>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted sm:text-base">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
               Keep track of your consistency, see what needs attention,
               and make your next session count.
             </p>
@@ -99,8 +107,8 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted">{stat.label}</p>
 
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-background text-lg">
-                    {stat.icon}
+                  <span className="flex size-9 items-center justify-center rounded-xl bg-background text-muted">
+                    <stat.icon size={18} strokeWidth={1.8} aria-hidden="true" />
                   </span>
                 </div>
 
@@ -167,7 +175,13 @@ export default async function DashboardPage() {
                   )}
                 </div>
 
-                <h3 className="mt-6 text-lg font-semibold">
+                <h3 className="mt-6 flex items-center gap-2 text-lg font-semibold">
+                  <Activity
+                    size={18}
+                    strokeWidth={1.8}
+                    className="shrink-0 opacity-70"
+                    aria-hidden="true"
+                  />
                   {exercise.label}
                 </h3>
 
@@ -203,8 +217,8 @@ export default async function DashboardPage() {
           <div className="overflow-hidden rounded-2xl border border-border bg-surface">
             {recentSessions.length === 0 ? (
               <div className="px-6 py-12 text-center">
-                <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-background text-2xl">
-                  ↗
+                <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-background text-muted">
+                  <ArrowUpRight size={22} strokeWidth={1.8} aria-hidden="true" />
                 </div>
 
                 <h3 className="mt-4 font-semibold">

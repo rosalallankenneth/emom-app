@@ -12,6 +12,11 @@ export type WorkoutFormState = {
   message: string;
 };
 
+export type UpdateWorkoutState = {
+  success: boolean;
+  message: string;
+};
+
 const workoutSchema = z
   .object({
     exercise: z.enum(EXERCISE_VALUES),
@@ -115,4 +120,104 @@ export async function createWorkout(
       message: "Unable to save the workout. Check the database connection and try again.",
     };
   }
+}
+
+
+const updateWorkoutSchema = z.object({
+  id: z.string().min(1),
+  exercise: z.enum(EXERCISE_VALUES),
+  workoutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  durationMinutes: z.coerce.number().int().min(10).max(30),
+  repsPerMinute: z.coerce.number().int().min(0).max(1000),
+  externalLoadKg: z.preprocess(
+    (value) =>
+      value === "" || value === null || value === undefined
+        ? undefined
+        : Number(value),
+    z.number().positive().max(1000).optional(),
+  ),
+  notes: z.string().max(1000),
+});
+
+
+export async function updateWorkout(
+  _previousState: UpdateWorkoutState,
+  formData: FormData,
+): Promise<UpdateWorkoutState> {
+  const parsed = updateWorkoutSchema.safeParse({
+    id: formData.get("id"),
+    exercise: formData.get("exercise"),
+    workoutDate: formData.get("workoutDate"),
+    durationMinutes: formData.get("durationMinutes"),
+    repsPerMinute: formData.get("repsPerMinute"),
+    externalLoadKg: formData.get("externalLoadKg"),
+    notes: formData.get("notes") ?? "",
+  });
+
+  if (!parsed.success) {
+    return {
+      success: false,
+      message: parsed.error.issues[0]?.message ?? "Invalid workout data.",
+    };
+  }
+
+  const data = parsed.data;
+  const date = new Date(`${data.workoutDate}T00:00:00.000Z`);
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.toISOString().slice(0, 10) !== data.workoutDate
+  ) {
+    return {
+      success: false,
+      message: "Enter a real calendar date.",
+    };
+  }
+
+  try {
+    await prisma.workoutSession.update({
+      where: { id: data.id },
+      data: {
+        exercise: data.exercise,
+        workoutDate: date,
+        durationMinutes: data.durationMinutes,
+        repsPerMinute: data.repsPerMinute,
+        externalLoadKg:
+          data.exercise === "RDLS"
+            ? data.externalLoadKg ?? null
+            : null,
+        notes: data.notes.trim() || null,
+      },
+    });
+
+    revalidatePath("/");
+    revalidatePath("/workouts");
+
+    return {
+      success: true,
+      message: "Workout updated successfully.",
+    };
+  } catch (error) {
+    console.error("Failed to update workout:", error);
+
+    return {
+      success: false,
+      message: "Unable to update this workout. Please try again.",
+    };
+  }
+}
+
+export async function deleteWorkout(formData: FormData) {
+  const id = formData.get("id");
+
+  if (typeof id !== "string" || !id.trim()) {
+    throw new Error("Invalid workout ID.");
+  }
+
+  await prisma.workoutSession.delete({
+    where: { id },
+  });
+
+  revalidatePath("/");
+  revalidatePath("/workouts");
 }

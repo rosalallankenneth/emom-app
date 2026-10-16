@@ -3,11 +3,20 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, History } from "lucide-react";
 
 const navigation = [
-  { label: "Dashboard", href: "/", icon: "⌂" },
-  { label: "Workout History", href: "/workouts", icon: "↗" },
-  { label: "Exercises", href: "/exercises", icon: "◫" },
+  {
+    label: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Workout History",
+    href: "/workouts",
+    icon: History,
+  },
 ];
 
 function Brand() {
@@ -30,6 +39,8 @@ export default function AppShell({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -43,22 +54,31 @@ export default function AppShell({
           </p>
 
           <nav className="space-y-1">
-            {navigation.map((item, index) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors ${
-                  index === 0
-                    ? "bg-brand text-brand-foreground"
-                    : "text-muted hover:bg-background hover:text-foreground"
-                }`}
-              >
-                <span className="w-5 text-center text-base" aria-hidden="true">
-                  {item.icon}
-                </span>
-                {item.label}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-3 ps-5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-brand text-brand-foreground"
+                      : "text-muted hover:bg-background hover:text-foreground"
+                  }`}
+                >
+                  <span className="w-5 text-center text-base" aria-hidden="true">
+                    <item.icon size={16} strokeWidth={1.8} aria-hidden="true" />
+                  </span>
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 

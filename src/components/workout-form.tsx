@@ -9,6 +9,7 @@ import {
   type WorkoutFormState,
 } from "../actions/workouts";
 import { EXERCISES } from "@/lib/exercises";
+import DatePickerField from "@/components/date-picker-field";
 
 const initialState: WorkoutFormState = {
   success: false,
@@ -78,18 +79,15 @@ export default function WorkoutForm({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
+        <div className="space-y-2">
           <label className={labelClass} htmlFor="workoutDate">
             Workout date
           </label>
 
-          <input
-            id="workoutDate"
+          <DatePickerField
             name="workoutDate"
-            type="date"
             value={workoutDate}
-            onChange={(event) => setWorkoutDate(event.target.value)}
-            className={inputClass}
+            onChange={setWorkoutDate}
             required
           />
         </div>
