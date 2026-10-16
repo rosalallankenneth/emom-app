@@ -1,34 +1,57 @@
 
-import Link from "next/link";
+import AppShell from "@/components/app-shell";
 
-export default function Home() {
+export default function DashboardPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-xl space-y-6">
-        <div>
-          <p className="text-sm font-medium text-default-500">
-            PERSONAL FITNESS
-          </p>
+    <AppShell>
+      <section className="mx-auto max-w-5xl">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
+          Overview
+        </p>
 
-          <h1 className="mt-2 text-4xl font-bold tracking-tight">
-            EMOM Tracker
-          </h1>
+        <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              Your training, at a glance.
+            </h1>
 
-          <p className="mt-3 text-default-500">
-            Track your workouts, record every minute, and monitor
-            your progress over time.
-          </p>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted sm:text-base">
+              A quieter way to track consistency, review your sessions,
+              and decide what to train next.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs font-medium">
+            <span className="size-2 rounded-full bg-brand" />
+            WORKOUT JOURNAL
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/workouts/new"
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
-          >
-            Log a workout
-          </Link>
+        <div className="mt-9 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-surface p-6 sm:p-7">
+            <p className="text-sm text-muted">Your training space</p>
+            <h2 className="mt-3 text-xl font-semibold">
+              Built around your routine.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              Eight fixed exercises. Simple session logging. Progress
+              you can actually review.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-brand p-6 sm:p-7">
+            <p className="text-sm text-brand-foreground/70">
+              YOUR NEXT STEP
+            </p>
+            <h2 className="mt-3 text-xl font-semibold text-brand-foreground">
+              Make every session count.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-brand-foreground/80">
+              Your recommendations and workout logging will live here.
+            </p>
+          </div>
         </div>
-      </div>
-    </main>
+      </section>
+    </AppShell>
   );
 }
