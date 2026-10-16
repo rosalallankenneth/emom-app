@@ -1,0 +1,34 @@
+
+export const EXERCISE_VALUES = [
+  "PULL_UPS",
+  "PUSH_UPS",
+  "ROWS",
+  "DIPS",
+  "PIKE_PUSH_UPS",
+  "SQUATS",
+  "SPLIT_SQUATS",
+  "RDLS",
+] as const;
+
+export type ExerciseValue = (typeof EXERCISE_VALUES)[number];
+
+export const EXERCISES = [
+  { value: "PULL_UPS", label: "Pull-ups" },
+  { value: "PUSH_UPS", label: "Push-ups" },
+  { value: "ROWS", label: "Rows" },
+  { value: "DIPS", label: "Dips" },
+  { value: "PIKE_PUSH_UPS", label: "Pike push-ups" },
+  { value: "SQUATS", label: "Squats" },
+  { value: "SPLIT_SQUATS", label: "Split squats" },
+  { value: "RDLS", label: "Romanian deadlifts (RDLs)" },
+] as const satisfies readonly {
+  value: ExerciseValue;
+  label: string;
+}[];
+
+export function getExerciseLabel(value: ExerciseValue): string {
+  return (
+    EXERCISES.find((exercise) => exercise.value === value)?.label ??
+    value
+  );
+}

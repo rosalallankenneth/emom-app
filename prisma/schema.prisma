@@ -24,7 +24,7 @@ model WorkoutSession {
   exercise        Exercise
   workoutDate     DateTime
   durationMinutes Int      @default(20)
-  repsPerMinute   Int[]
+  repsPerMinute   Int
   externalLoadKg  Float?
   notes           String?
   createdAt       DateTime @default(now())

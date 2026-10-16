@@ -1,20 +1,33 @@
-import { Button } from "@heroui/react";
+
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="text-3xl font-bold">
-          EMOM Tracker
-        </h1>
+    <main className="flex min-h-screen items-center justify-center p-6">
+      <div className="w-full max-w-xl space-y-6">
+        <div>
+          <p className="text-sm font-medium text-default-500">
+            PERSONAL FITNESS
+          </p>
 
-        <p className="text-default-500">
-          Your workout log, without the unnecessary fuss.
-        </p>
+          <h1 className="mt-2 text-4xl font-bold tracking-tight">
+            EMOM Tracker
+          </h1>
 
-        <Button variant="primary">
-          Test HeroUI
-        </Button>
+          <p className="mt-3 text-default-500">
+            Track your workouts, record every minute, and monitor
+            your progress over time.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/workouts/new"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+          >
+            Log a workout
+          </Link>
+        </div>
       </div>
     </main>
   );
