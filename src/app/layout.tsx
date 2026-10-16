@@ -11,13 +11,26 @@ export const metadata: Metadata = {
     "A personal training journal for tracking EMOM workouts and progress.",
 };
 
+const themeInitScript = `
+  try {
+    const savedTheme = localStorage.getItem("emom-theme");
+    document.documentElement.dataset.theme =
+      savedTheme === "light" ? "light" : "dark";
+  } catch {
+    document.documentElement.dataset.theme = "dark";
+  }
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );

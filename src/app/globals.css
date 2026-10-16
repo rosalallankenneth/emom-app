@@ -3,7 +3,7 @@
 @import "@heroui/styles";
 
 @theme {
-  --color-brand: #c8f169;
+  --color-brand: #a3d65c;
   --color-brand-foreground: #18200d;
 
   --color-background: var(--background);
@@ -18,7 +18,27 @@
   --font-sans: Arial, Helvetica, sans-serif;
 }
 
+/* Dark mode is the default theme. */
 :root {
+  color-scheme: dark;
+
+  --background: #11130f;
+  --foreground: #f0f2e9;
+
+  --surface: #1a1d18;
+  --surface-foreground: #f0f2e9;
+
+  --muted: #9a9f91;
+  --border: #30342b;
+
+  --accent: #a3d65c;
+  --accent-foreground: #18200d;
+
+  --radius: 0.875rem;
+}
+
+/* Light mode is enabled when the user selects it. */
+:root[data-theme="light"] {
   color-scheme: light;
 
   --background: #f6f7f2;
@@ -30,10 +50,8 @@
   --muted: #777c71;
   --border: #e7e9e1;
 
-  --accent: #c8f169;
+  --accent: #a3d65c;
   --accent-foreground: #18200d;
-
-  --radius: 0.875rem;
 }
 
 * {

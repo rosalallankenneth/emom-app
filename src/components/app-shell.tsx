@@ -2,9 +2,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, History } from "lucide-react";
+import {
+  LayoutDashboard,
+  History,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 const navigation = [
   {
@@ -18,6 +23,8 @@ const navigation = [
     icon: History,
   },
 ];
+
+type Theme = "dark" | "light";
 
 function Brand() {
   return (
@@ -40,8 +47,30 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-
   const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    setTheme(
+      document.documentElement.dataset.theme === "light"
+        ? "light"
+        : "dark",
+    );
+  }, []);
+
+  function toggleTheme() {
+    const nextTheme: Theme =
+      theme === "dark" ? "light" : "dark";
+
+    document.documentElement.dataset.theme = nextTheme;
+    setTheme(nextTheme);
+
+    try {
+      localStorage.setItem("emom-theme", nextTheme);
+    } catch {
+      // The theme still changes for the current page if storage is unavailable.
+    }
+  }
 
   return (
     <div className="min-h-screen">
@@ -73,7 +102,11 @@ export default function AppShell({
                   }`}
                 >
                   <span className="w-5 text-center text-base" aria-hidden="true">
-                    <item.icon size={16} strokeWidth={1.8} aria-hidden="true" />
+                    <item.icon
+                      size={16}
+                      strokeWidth={1.8}
+                      aria-hidden="true"
+                    />
                   </span>
                   {item.label}
                 </Link>
@@ -83,10 +116,12 @@ export default function AppShell({
         </div>
 
         <div className="mt-auto rounded-2xl bg-background p-4">
-          <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-white text-lg">
+          <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-surface text-lg">
             ↗
           </div>
-          <p className="text-sm font-semibold">Consistency over intensity.</p>
+          <p className="text-sm font-semibold">
+            Consistency over intensity.
+          </p>
           <p className="mt-1 text-xs leading-5 text-muted">
             Small sessions add up. Keep showing up.
           </p>
@@ -116,7 +151,8 @@ export default function AppShell({
             </div>
 
             <p className="hidden text-sm text-muted lg:block">
-              Personal training / <span className="text-foreground">Workspace</span>
+              Personal training /{" "}
+              <span className="text-foreground">Workspace</span>
             </p>
           </div>
 
@@ -124,6 +160,29 @@ export default function AppShell({
             <span className="hidden text-xs text-muted sm:block">
               YOUR PERSONAL FITNESS LOG
             </span>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={
+                theme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+              }
+              title={
+                theme === "dark"
+                  ? "Switch to light mode"
+                  : "Switch to dark mode"
+              }
+              className="flex size-10 items-center justify-center rounded-xl border border-border bg-background text-foreground transition-colors hover:bg-border"
+            >
+              {theme === "dark" ? (
+                <Sun size={18} strokeWidth={1.8} aria-hidden="true" />
+              ) : (
+                <Moon size={18} strokeWidth={1.8} aria-hidden="true" />
+              )}
+            </button>
+
             <div className="flex size-9 items-center justify-center rounded-full border border-border bg-background text-xs font-bold">
               ME
             </div>
@@ -132,16 +191,29 @@ export default function AppShell({
 
         {menuOpen && (
           <nav className="border-b border-border bg-surface px-4 py-3 lg:hidden">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="block rounded-lg px-3 py-3 text-sm font-medium hover:bg-background"
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`block rounded-lg px-3 py-3 text-sm font-medium ${
+                    isActive
+                      ? "bg-brand text-brand-foreground"
+                      : "hover:bg-background"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         )}
 

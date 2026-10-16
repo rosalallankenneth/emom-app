@@ -28,7 +28,7 @@ type ExerciseStat = {
   value: string;
   label: string;
   sessions: number;
-  hours: number;
+  minutes: number;
   reps: number;
 };
 
@@ -47,11 +47,11 @@ type DashboardOverviewProps = {
   recommendations: Recommendation[];
 };
 
-type ChartMetric = "sessions" | "hours" | "reps";
+type ChartMetric = "minutes" | "sessions" | "reps";
 
 const METRICS: { value: ChartMetric; label: string }[] = [
+  { value: "minutes", label: "Minutes" },
   { value: "sessions", label: "Sessions" },
-  { value: "hours", label: "Hours" },
   { value: "reps", label: "Reps" },
 ];
 
@@ -89,7 +89,7 @@ export default function DashboardOverview({
 }: DashboardOverviewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [metric, setMetric] = useState<ChartMetric>("sessions");
+  const [metric, setMetric] = useState<ChartMetric>("minutes");
 
   const stats = [
     {
@@ -125,8 +125,7 @@ export default function DashboardOverview({
     router.replace(query ? `/?${query}` : "/", { scroll: false });
   }
 
-  const metricLabel =
-    METRICS.find((item) => item.value === metric)?.label ?? "Sessions";
+  const metricLabel = METRICS.find((item) => item.value === metric)?.label ?? "Sessions";
 
   const chartData = exerciseStats.map((exercise) => ({
     exercise: exercise.label,
@@ -269,7 +268,7 @@ export default function DashboardOverview({
                       tickLine={false}
                     />
                     <YAxis
-                      allowDecimals={metric === "hours"}
+                      allowDecimals={false}
                       width={42}
                       tick={{ fill: "var(--muted)", fontSize: 11 }}
                       axisLine={false}
@@ -295,7 +294,7 @@ export default function DashboardOverview({
                     <Bar
                       dataKey="value"
                       name={metricLabel}
-                      fill="#c8f169"
+                      fill="var(--accent)"
                       radius={[5, 5, 0, 0]}
                       maxBarSize={36}
                     />
@@ -317,19 +316,11 @@ export default function DashboardOverview({
               {recommendations.map((exercise, index) => (
                 <div
                   key={exercise.value}
-                  className={`rounded-xl border p-4 ${
-                    index === 0
-                      ? "border-foreground bg-foreground text-white"
-                      : "border-border bg-background"
-                  }`}
+                  className="rounded-xl border border-border bg-background p-4"
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className={`flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ${
-                        index === 0
-                          ? "bg-brand text-brand-foreground"
-                          : "bg-surface text-foreground"
-                      }`}
+                      className="flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-semibold bg-surface text-foreground"
                     >
                       0{index + 1}
                     </span>
@@ -338,7 +329,7 @@ export default function DashboardOverview({
                       <h4 className="font-semibold">{exercise.label}</h4>
                       <p
                         className={`mt-1 text-xs ${
-                          index === 0 ? "text-white/65" : "text-muted"
+                          index === 0 ? "text-foreground/65" : "text-muted"
                         }`}
                       >
                         {formatLastPerformed(exercise.lastPerformed)}
@@ -348,11 +339,7 @@ export default function DashboardOverview({
 
                   {exercise.lastPerformed === null && (
                     <span
-                      className={`mt-3 inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                        index === 0
-                          ? "bg-white/10 text-white"
-                          : "bg-brand text-brand-foreground"
-                      }`}
+                      className="mt-3 inline-flex rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide bg-brand text-brand-foreground"
                     >
                       Not logged
                     </span>

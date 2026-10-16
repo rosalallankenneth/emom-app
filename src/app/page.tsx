@@ -61,7 +61,7 @@ export default async function DashboardPage({
             Your training, at a glance.
           </h1>
 
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+          <p className="mt-2 text-sm leading-6 text-muted">
             Keep track of your consistency, see what needs attention,
             and make your next session count.
           </p>
@@ -180,17 +180,17 @@ export default async function DashboardPage({
         </section>
 
         {/* Training reminder */}
-        <section className="flex flex-col gap-4 rounded-2xl bg-brand p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <section className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-foreground/65">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">
               Keep the habit
             </p>
 
-            <h2 className="mt-2 text-xl font-semibold text-brand-foreground">
+            <h2 className="mt-2 text-xl font-semibold text-foreground">
               Consistency beats the perfect plan.
             </h2>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-brand-foreground/75">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
               Log the work you actually did. Your progress should reflect
               your training, not an imaginary version of it.
             </p>

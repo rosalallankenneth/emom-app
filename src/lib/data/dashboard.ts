@@ -140,7 +140,7 @@ export async function getDashboardData(
     return {
       ...exercise,
       sessions: stats.sessions,
-      hours: Number((stats.minutes / 60).toFixed(2)),
+      minutes: stats.minutes,
       reps: stats.reps,
     };
   });

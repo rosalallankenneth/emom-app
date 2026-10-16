@@ -23,12 +23,12 @@ export default function NewWorkoutModal({
         aria-label={floating ? "New workout" : undefined}
         className={
           floating
-            ? "fixed bottom-5 right-5 z-40 flex size-12 min-w-12 items-center justify-center rounded-full p-0 shadow-lg sm:bottom-6 sm:right-6 sm:h-12 sm:w-auto sm:min-w-0 sm:gap-2 sm:rounded-xl sm:px-5"
+            ? "fixed bottom-6 right-6 z-40 flex size-14 min-w-14 items-center justify-center rounded-full p-0 shadow-lg sm:bottom-8 sm:right-8 sm:h-14 sm:w-auto sm:min-w-0 sm:gap-3 sm:rounded-2xl sm:px-7"
             : "h-11 rounded-xl px-5 font-semibold"
         }
       >
         <Dumbbell
-          size={20}
+          size={24}
           strokeWidth={1.8}
           aria-hidden="true"
         />
