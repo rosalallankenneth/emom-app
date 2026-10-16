@@ -7,7 +7,7 @@ import { Button } from "@heroui/react";
 import {
   createWorkout,
   type WorkoutFormState,
-} from "./actions";
+} from "../actions/workouts";
 import { EXERCISES } from "@/lib/exercises";
 
 const initialState: WorkoutFormState = {

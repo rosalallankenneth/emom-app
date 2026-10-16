@@ -2,7 +2,7 @@
 
 import { Button, Modal, useOverlayState } from "@heroui/react";
 
-import WorkoutForm from "@/app/workouts/new/workout-form";
+import WorkoutForm from "@/components/workout-form";
 
 export default function NewWorkoutModal() {
   const modalState = useOverlayState({ defaultOpen: false });
