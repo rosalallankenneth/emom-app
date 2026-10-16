@@ -1,0 +1,35 @@
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Exercise {
+  PULL_UPS
+  PUSH_UPS
+  ROWS
+  DIPS
+  PIKE_PUSH_UPS
+  SQUATS
+  SPLIT_SQUATS
+  RDLS
+}
+
+model WorkoutSession {
+  id              String   @id @default(cuid())
+  exercise        Exercise
+  workoutDate     DateTime
+  durationMinutes Int      @default(20)
+  repsPerMinute   Int[]
+  externalLoadKg  Float?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([workoutDate])
+  @@index([exercise, workoutDate])
+}
