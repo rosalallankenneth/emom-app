@@ -1,10 +1,18 @@
+
 "use client";
 
 import { Button, Modal, useOverlayState } from "@heroui/react";
+import { Dumbbell, Plus } from "lucide-react";
 
 import WorkoutForm from "@/components/workout-form";
 
-export default function NewWorkoutModal() {
+type NewWorkoutModalProps = {
+  floating?: boolean;
+};
+
+export default function NewWorkoutModal({
+  floating = false,
+}: NewWorkoutModalProps) {
   const modalState = useOverlayState({ defaultOpen: false });
 
   return (
@@ -12,12 +20,21 @@ export default function NewWorkoutModal() {
       <Button
         onPress={modalState.open}
         variant="primary"
-        className="h-11 rounded-xl px-5 font-semibold"
+        aria-label={floating ? "New workout" : undefined}
+        className={
+          floating
+            ? "fixed bottom-5 right-5 z-40 flex size-12 min-w-12 items-center justify-center rounded-full p-0 shadow-lg sm:bottom-6 sm:right-6 sm:h-12 sm:w-auto sm:min-w-0 sm:gap-2 sm:rounded-xl sm:px-5"
+            : "h-11 rounded-xl px-5 font-semibold"
+        }
       >
-        <span aria-hidden="true" className="text-lg leading-none">
-          +
+        <Dumbbell
+          size={20}
+          strokeWidth={1.8}
+          aria-hidden="true"
+        />
+        <span className={floating ? "hidden sm:inline" : ""}>
+          New workout
         </span>
-        New workout
       </Button>
 
       <Modal.Backdrop variant="blur" isDismissable>

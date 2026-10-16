@@ -1,15 +1,13 @@
+
 import AppShell from "@/components/app-shell";
+import DashboardOverview from "@/components/dashboard-overview";
 import NewWorkoutModal from "@/components/new-workout-modal";
 import { getExerciseLabel } from "@/lib/exercises";
-import { getDashboardData } from "@/lib/data/dashboard";
 
-import {
-  Activity,
-  ArrowUpRight,
-  Clock3,
-  Dumbbell,
-  Repeat2,
-} from "lucide-react";
+import { getDashboardData } from "@/lib/data/dashboard";
+import type { DashboardPeriod } from "@/lib/dashboard-periods";
+
+import { ArrowUpRight } from "lucide-react";
 
 function formatDate(date: Date) {
   return new Intl.DateTimeFormat("en-PH", {
@@ -20,182 +18,63 @@ function formatDate(date: Date) {
   }).format(date);
 }
 
-function formatDuration(totalMinutes: number) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours === 0) return `${minutes} min`;
-  if (minutes === 0) return `${hours} hr`;
-
-  return `${hours} hr ${minutes} min`;
+function isDashboardPeriod(value: string): value is DashboardPeriod {
+  return ["week", "month", "year", "all"].includes(value);
 }
 
-function formatLastPerformed(date: Date | null) {
-  if (!date) return "Never logged";
+type DashboardPageProps = {
+  searchParams: Promise<{ period?: string | string[] }>;
+};
 
-  return `Last trained ${formatDate(date)}`;
-}
+export default async function DashboardPage({
+  searchParams,
+}: DashboardPageProps) {
+  const params = await searchParams;
+  const requestedPeriod = Array.isArray(params.period)
+    ? params.period[0]
+    : params.period;
 
-export default async function DashboardPage() {
+  const period: DashboardPeriod =
+    requestedPeriod && isDashboardPeriod(requestedPeriod)
+      ? requestedPeriod
+      : "month";
+
   const {
     sessionCount,
     totalMinutes,
     totalReps,
     recentSessions,
     recommendations,
-  } = await getDashboardData();
-
-  const stats = [
-    {
-      label: "Sessions logged",
-      value: sessionCount.toLocaleString("en-PH"),
-      detail: "Total completed workouts",
-      icon: Dumbbell,
-    },
-    {
-      label: "Training time",
-      value: formatDuration(totalMinutes),
-      detail: "Time invested in training",
-      icon: Clock3,
-    },
-    {
-      label: "Total repetitions",
-      value: totalReps.toLocaleString("en-PH"),
-      detail: "Duration × reps per minute",
-      icon: Repeat2,
-    },
-  ];
+    exerciseStats,
+  } = await getDashboardData(period);
 
   return (
     <AppShell>
       <div className="space-y-8">
         {/* Page heading */}
-        <section className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
-              Overview
-            </p>
-
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-              Your training, at a glance.
-            </h1>
-
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-              Keep track of your consistency, see what needs attention,
-              and make your next session count.
-            </p>
-          </div>
-
-          <div className="shrink-0">
-            <NewWorkoutModal />
-          </div>
-        </section>
-
-        {/* Summary statistics */}
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Training overview</h2>
-            <span className="text-xs text-muted">All time</span>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
+            Overview
+          </p>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {stats.map((stat) => (
-              <article
-                key={stat.label}
-                className="rounded-2xl border border-border bg-surface p-5 sm:p-6"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted">{stat.label}</p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Your training, at a glance.
+          </h1>
 
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-background text-muted">
-                    <stat.icon size={18} strokeWidth={1.8} aria-hidden="true" />
-                  </span>
-                </div>
-
-                <p className="mt-5 text-3xl font-semibold tracking-tight tabular-nums">
-                  {stat.value}
-                </p>
-
-                <p className="mt-2 text-xs text-muted">
-                  {stat.detail}
-                </p>
-              </article>
-            ))}
-          </div>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+            Keep track of your consistency, see what needs attention,
+            and make your next session count.
+          </p>
         </section>
 
-        {/* Exercise recommendations */}
-        <section>
-          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                What to train next
-              </h2>
-              <p className="mt-1 text-sm text-muted">
-                Your three least-recently-trained exercises.
-              </p>
-            </div>
-
-            <span className="text-xs text-muted">
-              Based on your workout history
-            </span>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            {recommendations.map((exercise, index) => (
-              <article
-                key={exercise.value}
-                className={`rounded-2xl border p-5 ${
-                  index === 0
-                    ? "border-foreground bg-foreground text-white"
-                    : "border-border bg-surface"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <span
-                    className={`flex size-9 items-center justify-center rounded-xl text-sm font-semibold ${
-                      index === 0
-                        ? "bg-brand text-brand-foreground"
-                        : "bg-background text-foreground"
-                    }`}
-                  >
-                    0{index + 1}
-                  </span>
-
-                  {exercise.lastPerformed === null && (
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                        index === 0
-                          ? "bg-white/10 text-white"
-                          : "bg-brand text-brand-foreground"
-                      }`}
-                    >
-                      Not logged
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="mt-6 flex items-center gap-2 text-lg font-semibold">
-                  <Activity
-                    size={18}
-                    strokeWidth={1.8}
-                    className="shrink-0 opacity-70"
-                    aria-hidden="true"
-                  />
-                  {exercise.label}
-                </h3>
-
-                <p
-                  className={`mt-1 text-xs ${
-                    index === 0 ? "text-white/65" : "text-muted"
-                  }`}
-                >
-                  {formatLastPerformed(exercise.lastPerformed)}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <DashboardOverview
+          period={period}
+          sessionCount={sessionCount}
+          totalMinutes={totalMinutes}
+          totalReps={totalReps}
+          exerciseStats={exerciseStats}
+          recommendations={recommendations}
+        />
 
         {/* Recent sessions */}
         <section>
@@ -218,7 +97,11 @@ export default async function DashboardPage() {
             {recentSessions.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-background text-muted">
-                  <ArrowUpRight size={22} strokeWidth={1.8} aria-hidden="true" />
+                  <ArrowUpRight
+                    size={22}
+                    strokeWidth={1.8}
+                    aria-hidden="true"
+                  />
                 </div>
 
                 <h3 className="mt-4 font-semibold">
@@ -312,10 +195,10 @@ export default async function DashboardPage() {
               your training, not an imaginary version of it.
             </p>
           </div>
-
-          <NewWorkoutModal />
         </section>
       </div>
+
+      <NewWorkoutModal floating />
     </AppShell>
   );
 }
