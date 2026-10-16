@@ -5,6 +5,16 @@
 @theme {
   --color-brand: #c8f169;
   --color-brand-foreground: #18200d;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
   --font-sans: Arial, Helvetica, sans-serif;
 }
 

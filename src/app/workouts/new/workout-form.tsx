@@ -29,7 +29,13 @@ const inputClass =
 
 const labelClass = "mb-1.5 block text-sm font-medium";
 
-export default function WorkoutForm() {
+type WorkoutFormProps = {
+  onSuccess?: () => void;
+};
+
+export default function WorkoutForm({
+  onSuccess,
+}: WorkoutFormProps) {
   const [state, formAction, pending] = useActionState(
     createWorkout,
     initialState,
