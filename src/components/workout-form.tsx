@@ -117,28 +117,26 @@ export default function WorkoutForm({
         </div>
       </div>
 
-      {exercise === "RDLS" && (
-        <div>
-          <label className={labelClass} htmlFor="externalLoadKg">
-            External load (kg)
-          </label>
+      <div>
+        <label className={labelClass} htmlFor="externalLoadKg">
+          External load (kg)
+        </label>
 
-          <input
-            id="externalLoadKg"
-            name="externalLoadKg"
-            type="number"
-            min="0.1"
-            max="1000"
-            step="0.1"
-            placeholder="e.g. 20"
-            className={inputClass}
-          />
+        <input
+          id="externalLoadKg"
+          name="externalLoadKg"
+          type="number"
+          min="0.1"
+          max="1000"
+          step="0.1"
+          placeholder="e.g. 20"
+          className={inputClass}
+        />
 
-          <p className="mt-1 text-xs text-default-500">
-            Enter the total external load used for this workout.
-          </p>
-        </div>
-      )}
+        <p className="mt-1 text-xs text-default-500">
+          Enter the total external load used for this workout.
+        </p>
+      </div>
 
       <div>
         <label className={labelClass} htmlFor="repsPerMinute">

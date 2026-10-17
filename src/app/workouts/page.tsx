@@ -4,11 +4,10 @@ import { notFound } from "next/navigation";
 
 import AppShell from "@/components/app-shell";
 import DeleteWorkoutButton from "@/components/delete-workout-button";
-import { EXERCISES, getExerciseLabel } from "@/lib/exercises";
-import { prisma } from "@/lib/prisma";
-
 import EditWorkoutModal from "@/components/edit-workout-modal";
 import WorkoutHistoryFilters from "@/components/workout-history-filters";
+import { EXERCISES, getExerciseLabel } from "@/lib/exercises";
+import { prisma } from "@/lib/prisma";
 
 type SearchParams = Promise<{
   exercise?: string;
@@ -36,6 +35,12 @@ function isValidDate(value?: string) {
     !Number.isNaN(date.getTime()) &&
     date.toISOString().slice(0, 10) === value
   );
+}
+
+function formatNumber(value: number, maximumFractionDigits = 0) {
+  return value.toLocaleString("en-PH", {
+    maximumFractionDigits,
+  });
 }
 
 export default async function WorkoutHistoryPage({
@@ -79,6 +84,164 @@ export default async function WorkoutHistoryPage({
     ],
   });
 
+  const sessionCount = workouts.length;
+
+  const totalDuration = workouts.reduce(
+    (total, workout) => total + workout.durationMinutes,
+    0,
+  );
+
+  const totalReps = workouts.reduce(
+    (total, workout) =>
+      total + workout.durationMinutes * workout.repsPerMinute,
+    0,
+  );
+
+  const averageDuration =
+    sessionCount > 0 ? totalDuration / sessionCount : null;
+
+  const averageRepsPerMinute =
+    sessionCount > 0
+      ? workouts.reduce(
+          (total, workout) => total + workout.repsPerMinute,
+          0,
+        ) / sessionCount
+      : null;
+
+  const averageReps =
+    sessionCount > 0 ? totalReps / sessionCount : null;
+
+  const sessionsByExercise = new Map<
+    string,
+    { label: string; count: number }
+  >();
+
+  for (const item of EXERCISES) {
+    sessionsByExercise.set(item.value, {
+      label: item.label,
+      count: 0,
+    });
+  }
+
+  for (const workout of workouts) {
+    const stats = sessionsByExercise.get(workout.exercise);
+
+    if (stats) {
+      stats.count += 1;
+    }
+  }
+
+  // Preserve the fixed exercise order when session counts are tied.
+  const mostTrained = EXERCISES
+    .map((item) => sessionsByExercise.get(item.value)!)
+    .reduce(
+      (best, current) =>
+        current.count > best.count ? current : best,
+      { label: "—", count: 0 },
+    );
+
+  const longestWorkout = workouts.reduce<
+    (typeof workouts)[number] | null
+  >(
+    (best, workout) =>
+      !best || workout.durationMinutes > best.durationMinutes
+        ? workout
+        : best,
+    null,
+  );
+
+  const highestRepsPerMinute = workouts.reduce<
+    (typeof workouts)[number] | null
+  >(
+    (best, workout) =>
+      !best || workout.repsPerMinute > best.repsPerMinute
+        ? workout
+        : best,
+    null,
+  );
+
+  const highestTotalReps = workouts.reduce<
+    (typeof workouts)[number] | null
+  >(
+    (best, workout) => {
+      const reps = workout.durationMinutes * workout.repsPerMinute;
+
+      const bestReps = best
+        ? best.durationMinutes * best.repsPerMinute
+        : -1;
+
+      return !best || reps > bestReps ? workout : best;
+    },
+    null,
+  );
+
+  const summaryCards = [
+    {
+      label: "Most trained",
+      value: mostTrained.count > 0 ? mostTrained.label : "—",
+      detail:
+        mostTrained.count > 0
+          ? `${mostTrained.count} ${
+              mostTrained.count === 1 ? "session" : "sessions"
+            }`
+          : "No sessions",
+    },
+    {
+      label: "Longest session",
+      value: longestWorkout
+        ? `${longestWorkout.durationMinutes} min`
+        : "—",
+      detail: longestWorkout
+        ? getExerciseLabel(longestWorkout.exercise)
+        : "No sessions",
+    },
+    {
+      label: "Highest reps/min",
+      value: highestRepsPerMinute
+        ? formatNumber(highestRepsPerMinute.repsPerMinute)
+        : "—",
+      detail: highestRepsPerMinute
+        ? getExerciseLabel(highestRepsPerMinute.exercise)
+        : "No sessions",
+    },
+    {
+      label: "Most reps in a session",
+      value: highestTotalReps
+        ? formatNumber(
+            highestTotalReps.durationMinutes *
+              highestTotalReps.repsPerMinute,
+          )
+        : "—",
+      detail: highestTotalReps
+        ? getExerciseLabel(highestTotalReps.exercise)
+        : "No sessions",
+    },
+    {
+      label: "Avg. duration",
+      value:
+        averageDuration !== null
+          ? `${formatNumber(averageDuration, 1)} min`
+          : "—",
+      detail: "Per session",
+    },
+    {
+      label: "Avg. reps/min",
+      value:
+        averageRepsPerMinute !== null
+          ? formatNumber(averageRepsPerMinute, 1)
+          : "—",
+      detail: "Per session",
+    },
+    {
+      label: "Avg. total reps",
+      value:
+        averageReps !== null
+          ? formatNumber(averageReps, 1)
+          : "—",
+      detail: "Per session",
+    },
+  ];
+
   return (
     <AppShell>
       <div className="space-y-7">
@@ -86,6 +249,7 @@ export default async function WorkoutHistoryPage({
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
             Training log
           </p>
+
           <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -95,8 +259,10 @@ export default async function WorkoutHistoryPage({
                 Review and manage your completed sessions.
               </p>
             </div>
+
             <p className="text-sm text-muted">
-              {workouts.length} {workouts.length === 1 ? "session" : "sessions"}
+              {sessionCount}{" "}
+              {sessionCount === 1 ? "session" : "sessions"}
             </p>
           </div>
         </header>
@@ -107,10 +273,48 @@ export default async function WorkoutHistoryPage({
           initialTo={to ?? ""}
         />
 
+        {/* Compact workout statistics */}
+        <section aria-label="Workout statistics">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
+            {summaryCards.map((card) => (
+              <article
+                key={card.label}
+                className="min-w-0 rounded-xl border border-border bg-surface px-3 py-3"
+              >
+                <p className="text-[11px] font-medium leading-4 text-muted">
+                  {card.label}
+                </p>
+
+                <p
+                  className="mt-1.5 break-words text-lg font-semibold leading-6 tracking-tight tabular-nums"
+                  title={card.value}
+                >
+                  {card.value}
+                </p>
+
+                <p className="mt-1 truncate text-[11px] leading-4 text-muted">
+                  {card.detail}
+                </p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+
+        {/* Workout history with independently scrollable rows */}
         <section className="overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="font-semibold">Workout sessions</h2>
+            <p className="text-xs text-muted">
+              Newest sessions first
+            </p>
+          </div>
+
           {workouts.length === 0 ? (
             <div className="px-6 py-16 text-center">
-              <h2 className="text-lg font-semibold">No sessions found</h2>
+              <h3 className="text-lg font-semibold">
+                No sessions found
+              </h3>
               <p className="mt-2 text-sm text-muted">
                 Try changing your filters, or log a workout from the dashboard.
               </p>
@@ -123,6 +327,7 @@ export default async function WorkoutHistoryPage({
             </div>
           ) : (
             <>
+              {/* Column headings stay visible while the rows scroll */}
               <div className="hidden grid-cols-[1.4fr_1fr_0.65fr_0.65fr_0.7fr_1fr] gap-4 border-b border-border bg-background/70 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-muted lg:grid">
                 <span>Exercise</span>
                 <span>Date</span>
@@ -132,21 +337,24 @@ export default async function WorkoutHistoryPage({
                 <span className="text-right">Actions</span>
               </div>
 
-              <div className="divide-y divide-border">
+              <div className="max-h-[520px] divide-y divide-border overflow-y-auto overscroll-contain">
                 {workouts.map((workout) => (
                   <article
                     key={workout.id}
                     className="grid gap-4 px-5 py-5 lg:grid-cols-[1.4fr_1fr_0.65fr_0.65fr_0.7fr_1fr] lg:items-center"
                   >
-                    <div>
-                      <h2 className="font-semibold">
+                    <div className="min-w-0">
+                      <h3 className="font-semibold">
                         {getExerciseLabel(workout.exercise)}
-                      </h2>
-                      {workout.externalLoadKg !== null && (
-                        <p className="mt-1 text-xs text-muted">
-                          External load: {workout.externalLoadKg} kg
-                        </p>
-                      )}
+                      </h3>
+
+                      {workout.externalLoadKg != null &&
+                        workout.externalLoadKg > 0 && (
+                          <p className="mt-1 text-xs text-muted">
+                            External load: {workout.externalLoadKg} kg
+                          </p>
+                        )}
+
                       {workout.notes && (
                         <p className="mt-1 line-clamp-2 text-xs text-muted">
                           {workout.notes}
@@ -155,17 +363,23 @@ export default async function WorkoutHistoryPage({
                     </div>
 
                     <div className="flex justify-between gap-3 text-sm lg:block">
-                      <span className="text-muted lg:hidden">Date</span>
+                      <span className="text-muted lg:hidden">
+                        Date
+                      </span>
                       {formatDate(workout.workoutDate)}
                     </div>
 
                     <div className="flex justify-between gap-3 text-sm lg:block">
-                      <span className="text-muted lg:hidden">Duration</span>
+                      <span className="text-muted lg:hidden">
+                        Duration
+                      </span>
                       {workout.durationMinutes} min
                     </div>
 
                     <div className="flex justify-between gap-3 text-sm lg:block">
-                      <span className="text-muted lg:hidden">Reps/min</span>
+                      <span className="text-muted lg:hidden">
+                        Reps/min
+                      </span>
                       {workout.repsPerMinute}
                     </div>
 
@@ -173,7 +387,10 @@ export default async function WorkoutHistoryPage({
                       <span className="font-normal text-muted lg:hidden">
                         Total reps
                       </span>
-                      {(workout.durationMinutes * workout.repsPerMinute).toLocaleString("en-PH")}
+                      {formatNumber(
+                        workout.durationMinutes *
+                          workout.repsPerMinute,
+                      )}
                     </div>
 
                     <div className="flex items-center justify-end gap-2">
@@ -181,7 +398,9 @@ export default async function WorkoutHistoryPage({
                         workout={{
                           id: workout.id,
                           exercise: workout.exercise,
-                          workoutDate: workout.workoutDate.toISOString().slice(0, 10),
+                          workoutDate: workout.workoutDate
+                            .toISOString()
+                            .slice(0, 10),
                           durationMinutes: workout.durationMinutes,
                           repsPerMinute: workout.repsPerMinute,
                           externalLoadKg: workout.externalLoadKg,
@@ -193,6 +412,49 @@ export default async function WorkoutHistoryPage({
                   </article>
                 ))}
               </div>
+
+              {/* Footer stays outside the scrollable rows */}
+              <footer className="border-t-2 border-brand/40 bg-surface px-5 py-4 text-foreground">
+                <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-[1.4fr_1fr_0.65fr_0.65fr_0.7fr_1fr] lg:items-center lg:gap-4">
+                  <div className="font-bold uppercase tracking-wider">
+                    TOTAL
+                    <p className="mt-1 text-xs font-normal normal-case tracking-normal text-muted">
+                      {sessionCount}{" "}
+                      {sessionCount === 1 ? "session" : "sessions"}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between gap-3 text-sm lg:block">
+                    <span className="text-muted lg:hidden">
+                      Date
+                    </span>
+                    <span className="text-muted">—</span>
+                  </div>
+
+                  <div className="flex justify-between gap-3 text-sm font-semibold tabular-nums lg:block">
+                    <span className="font-normal text-muted lg:hidden">
+                      Total duration
+                    </span>
+                    <span>{formatNumber(totalDuration)} min</span>
+                  </div>
+
+                  <div className="flex justify-between gap-3 text-sm lg:block">
+                    <span className="text-muted lg:hidden">
+                      Reps/min
+                    </span>
+                    <span className="text-muted">—</span>
+                  </div>
+
+                  <div className="flex justify-between gap-3 text-sm font-bold tabular-nums lg:block">
+                    <span className="font-normal text-muted lg:hidden">
+                      Total reps
+                    </span>
+                    {formatNumber(totalReps)}
+                  </div>
+
+                  <div className="hidden lg:block" />
+                </div>
+              </footer>
             </>
           )}
         </section>

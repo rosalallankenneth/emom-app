@@ -42,14 +42,6 @@ const workoutSchema = z
     }),
   })
   .superRefine((data, ctx) => {
-    if (data.exercise !== "RDLS" && data.externalLoadKg !== undefined) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["externalLoadKg"],
-        message: "External load is only supported for RDLs.",
-      });
-    }
-
     const date = new Date(`${data.workoutDate}T00:00:00.000Z`);
 
     if (
@@ -97,10 +89,7 @@ export async function createWorkout(
         ),
         durationMinutes: data.durationMinutes,
         repsPerMinute: data.repsPerMinute,
-        externalLoadKg:
-          data.exercise === "RDLS"
-            ? data.externalLoadKg ?? null
-            : null,
+        externalLoadKg: data.externalLoadKg ?? null,
         notes: data.notes.trim() || null,
       },
     });
@@ -122,7 +111,6 @@ export async function createWorkout(
   }
 }
 
-
 const updateWorkoutSchema = z.object({
   id: z.string().min(1),
   exercise: z.enum(EXERCISE_VALUES),
@@ -138,7 +126,6 @@ const updateWorkoutSchema = z.object({
   ),
   notes: z.string().max(1000),
 });
-
 
 export async function updateWorkout(
   _previousState: UpdateWorkoutState,
@@ -182,10 +169,7 @@ export async function updateWorkout(
         workoutDate: date,
         durationMinutes: data.durationMinutes,
         repsPerMinute: data.repsPerMinute,
-        externalLoadKg:
-          data.exercise === "RDLS"
-            ? data.externalLoadKg ?? null
-            : null,
+        externalLoadKg: data.externalLoadKg ?? null,
         notes: data.notes.trim() || null,
       },
     });
