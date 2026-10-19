@@ -11,6 +11,7 @@ import {
   Sun,
   CheckCircle2,
   Dumbbell,
+  ChartNoAxesCombined,
 } from "lucide-react";
 
 import NewWorkoutModal from "@/components/new-workout-modal";
@@ -25,6 +26,11 @@ const navigation = [
     label: "Exercises",
     href: "/exercises",
     icon: Dumbbell,
+  },
+  {
+    label: "Training Insights",
+    href: "/insights",
+    icon: ChartNoAxesCombined,
   },
   {
     label: "Workout History",

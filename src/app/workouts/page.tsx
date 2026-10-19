@@ -246,14 +246,14 @@ export default async function WorkoutHistoryPage({
     <AppShell>
       <div className="space-y-7">
         <header>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
             Training log
           </p>
 
           <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Workout history
+                Workout History
               </h1>
               <p className="mt-2 text-sm text-muted">
                 Review and manage your completed sessions.
@@ -304,7 +304,7 @@ export default async function WorkoutHistoryPage({
         {/* Workout history with independently scrollable rows */}
         <section className="overflow-hidden rounded-2xl border border-border bg-surface">
           <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="font-semibold">Workout sessions</h2>
+            <h2 className="font-semibold">Workout Sessions</h2>
             <p className="text-xs text-muted">
               Newest sessions first
             </p>
