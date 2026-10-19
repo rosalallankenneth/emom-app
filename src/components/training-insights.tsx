@@ -28,6 +28,8 @@ import {
   type ExerciseSession,
 } from "@/components/exercise-analytics/analytics-utils";
 
+import TrainingActivityCalendar from "@/components/training-activity-calendar";
+
 type Period = "30d" | "90d" | "6m" | "all";
 type WorkloadMetric = "sessions" | "minutes" | "reps";
 
@@ -240,6 +242,8 @@ export default function TrainingInsights({
 
     const weeks = Math.max(trackedDays / 7, 1 / 7);
 
+    const minutesPerWeek = totalMinutes / weeks;
+
     const previousWeeks =
       days === null ? null : Math.max(days / 7, 1 / 7);
 
@@ -251,6 +255,7 @@ export default function TrainingInsights({
       previousMinutes,
       previousReps,
       sessionsPerWeek: currentSessions.length / weeks,
+      minutesPerWeek,
       previousSessionsPerWeek:
         previousSessions === null || previousWeeks === null
           ? null
@@ -410,10 +415,10 @@ export default function TrainingInsights({
           icon={Clock3}
         />
         <StatCard
-          label="Estimated total reps"
-          value={formatNumber(summary.totalReps)}
-          description="Duration multiplied by reps per minute"
-          icon={Repeat2}
+          label="Minutes per week"
+          value={formatNumber(summary.minutesPerWeek)}
+          description="Average weekly training time"
+          icon={Clock3}
         />
         <StatCard
           label="Sessions per week"
@@ -635,7 +640,7 @@ export default function TrainingInsights({
             <Activity size={19} className="text-brand" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">Consistency check</h2>
+            <h2 className="text-lg font-bold">Consistency Check</h2>
             <p className="text-sm text-muted">
               Compare your training frequency with the previous period.
             </p>
@@ -698,6 +703,8 @@ export default function TrainingInsights({
           </p>
         )}
       </section>
+
+      <TrainingActivityCalendar sessions={sessions} />
     </div>
   );
 }

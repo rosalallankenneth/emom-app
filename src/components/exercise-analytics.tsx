@@ -3,7 +3,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  CalendarDays,
   Clock3,
   Dumbbell,
   Gauge,
@@ -15,7 +14,6 @@ import {
   type ExerciseValue,
 } from "@/lib/exercises";
 
-import AllTimeOverview from "./exercise-analytics/all-time-overview";
 import {
   calculateStats,
   formatDate,
@@ -104,11 +102,6 @@ export default function ExerciseAnalytics({
       }),
     };
   }, [exerciseSessions, now, periodInfo.days]);
-
-  const allTimeStats = useMemo(
-    () => calculateStats(exerciseSessions),
-    [exerciseSessions],
-  );
 
   const currentStats = useMemo(
     () => calculateStats(currentSessions),
@@ -351,11 +344,6 @@ export default function ExerciseAnalytics({
           bestVolume={bestVolume}
         />
       </section>
-
-      <AllTimeOverview
-        sessions={exerciseSessions}
-        exerciseLabel={exerciseLabel}
-      />
     </div>
   );
 }

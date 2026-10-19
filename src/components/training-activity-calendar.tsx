@@ -3,8 +3,8 @@
 
 import { useMemo } from "react";
 
-import type { ExerciseSession } from "./analytics-utils";
-import { formatDate } from "./analytics-utils";
+import type { ExerciseSession } from "./exercise-analytics/analytics-utils";
+import { formatDate } from "./exercise-analytics/analytics-utils";
 
 type ActivityDay = {
   date: string;
@@ -132,7 +132,7 @@ export default function TrainingActivityCalendar({
     <section className="min-w-0 rounded-2xl border border-border bg-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-base font-semibold">Training activity</h2>
+          <h2 className="text-base font-semibold">Training Activity</h2>
           <p className="mt-1 text-sm text-muted">
             Your workout consistency over the past year
           </p>
