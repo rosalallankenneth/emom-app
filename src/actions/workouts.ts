@@ -118,10 +118,17 @@ const updateWorkoutSchema = z.object({
   durationMinutes: z.coerce.number().int().min(10).max(30),
   repsPerMinute: z.coerce.number().int().min(0).max(1000),
   externalLoadKg: z.preprocess(
-    (value) =>
-      value === "" || value === null || value === undefined
-        ? undefined
-        : Number(value),
+    (value) => {
+      if (value === "" || value === null || value === undefined) {
+        return undefined;
+      }
+
+      if (typeof value === "string" || typeof value === "number") {
+        return Number(value);
+      }
+
+      return value;
+    },
     z.number().positive().max(1000).optional(),
   ),
   notes: z.string().max(1000),

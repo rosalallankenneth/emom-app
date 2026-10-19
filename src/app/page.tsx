@@ -1,7 +1,6 @@
 
 import AppShell from "@/components/app-shell";
 import DashboardOverview from "@/components/dashboard-overview";
-import NewWorkoutModal from "@/components/new-workout-modal";
 import { getExerciseLabel } from "@/lib/exercises";
 
 import { getDashboardData } from "@/lib/data/dashboard";
@@ -197,8 +196,6 @@ export default async function DashboardPage({
           </div>
         </section>
       </div>
-
-      <NewWorkoutModal floating />
     </AppShell>
   );
 }

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { Button } from "@heroui/react";
 import { AlertTriangle, Trash2, X } from "lucide-react";
+import { useAppToast } from "@/components/app-shell";
 
 import { deleteWorkout } from "@/actions/workouts";
 
@@ -11,17 +12,26 @@ export default function DeleteWorkoutButton({ id }: { id: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const { showToast } = useAppToast();
+  const [error, setError] = useState<string | null>(null);
+
   async function handleDelete() {
     if (isDeleting) return;
 
     setIsDeleting(true);
+    setError(null);
 
     try {
       const formData = new FormData();
       formData.set("id", id);
 
       await deleteWorkout(formData);
+
       setIsOpen(false);
+      showToast("Workout deleted successfully.");
+    } catch (error) {
+      console.error("Failed to delete workout:", error);
+      setError("Unable to delete this workout. Please try again.");
     } finally {
       setIsDeleting(false);
     }
@@ -80,6 +90,16 @@ export default function DeleteWorkoutButton({ id }: { id: string }) {
                 </p>
               </div>
 
+              {error && (
+                <p
+                  role="alert"
+                  aria-live="polite"
+                  className="mt-4 rounded-lg border border-danger-300 p-3 text-sm text-danger"
+                >
+                  {error}
+                </p>
+              )}
+
               <button
                 type="button"
                 aria-label="Close confirmation"
@@ -96,7 +116,10 @@ export default function DeleteWorkoutButton({ id }: { id: string }) {
                 type="button"
                 variant="tertiary"
                 isDisabled={isDeleting}
-                onPress={() => setIsOpen(false)}
+                onPress={() => {
+                  setError(null);
+                  setIsOpen(true);
+                }}
               >
                 Cancel
               </Button>
