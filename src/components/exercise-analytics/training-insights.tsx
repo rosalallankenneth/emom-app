@@ -59,7 +59,7 @@ export default function TrainingInsights({
         </span>
 
         <div>
-          <h2 className="font-semibold">Training insights</h2>
+          <h2 className="font-semibold">Training Insights</h2>
           <p className="mt-1 text-xs text-muted">
             Based on your logged sessions
           </p>

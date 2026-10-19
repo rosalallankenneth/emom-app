@@ -52,7 +52,7 @@ export default async function DashboardPage({
       <div className="space-y-8">
         {/* Page heading */}
         <section>
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">
             Overview
           </p>
 

@@ -209,14 +209,14 @@ export default function ExerciseAnalytics({
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <p className="text-xs font-semibold tracking-[0.18em] text-muted">
+        <p className="text-xs font-semibold tracking-[0.18em] text-brand">
           TRAINING ANALYTICS
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-              Exercise insights
+              Exercise Insights
             </h1>
 
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">

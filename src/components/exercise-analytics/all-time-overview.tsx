@@ -31,7 +31,7 @@ export default function AllTimeOverview({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">All-time overview</h2>
+        <h2 className="text-lg font-semibold">All-Time overview</h2>
         <p className="mt-1 text-sm text-muted">
           Your complete training history, regardless of the selected
           period.
