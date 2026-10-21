@@ -86,12 +86,25 @@ function getBucketStart(value: string, monthly: boolean) {
 function formatBucketLabel(value: string, monthly: boolean) {
   const date = dateFromISO(value);
 
-  return new Intl.DateTimeFormat("en-PH", {
-    month: "short",
-    ...(monthly ? { year: "2-digit" as const } : {}),
-    ...(!monthly ? { day: "numeric" as const } : {}),
-    timeZone: "UTC",
-  }).format(date);
+  if (monthly) {
+    return new Intl.DateTimeFormat("en-PH", {
+      month: "short",
+      year: "2-digit",
+      timeZone: "UTC",
+    }).format(date);
+  }
+
+  const weekEnd = new Date(date);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+
+  const formatDay = (value: Date) =>
+    new Intl.DateTimeFormat("en-PH", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }).format(value);
+
+  return `${formatDay(date)} to ${formatDay(weekEnd)}`;
 }
 
 function getChange(current: number, previous: number) {

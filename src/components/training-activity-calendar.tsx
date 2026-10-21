@@ -73,11 +73,11 @@ export default function TrainingActivityCalendar({
         date: key,
         ...value,
         level:
-          value.count === 0
+          value.minutes === 0
             ? 0
-            : value.count === 1
+            : value.minutes < 20
               ? 1
-              : value.count === 2
+              : value.minutes < 30
                 ? 2
                 : 3,
         future: key > todayKey,
@@ -196,11 +196,9 @@ export default function TrainingActivityCalendar({
                     >
                       <div
                         tabIndex={day.future ? -1 : 0}
-                        aria-label={
-                          `${formatDate(day.date)}: ${day.count} ${
-                            day.count === 1 ? "session" : "sessions"
-                          }, ${day.minutes} minutes`
-                        }
+                        aria-label={`${formatDate(day.date)}: ${day.minutes} minutes trained, ${
+                          day.count
+                        } ${day.count === 1 ? "session" : "sessions"}`}
                         className={`h-full w-full rounded-[3px] outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${colors[day.level]} ${
                           day.future ? "opacity-30" : ""
                         }`}
@@ -217,9 +215,9 @@ export default function TrainingActivityCalendar({
                         <p className="mt-1 text-muted">
                           {day.future
                             ? "Upcoming date"
-                            : `${day.count} ${
+                            : `${day.minutes} min trained · ${day.count} ${
                                 day.count === 1 ? "session" : "sessions"
-                              } · ${day.minutes} min`}
+                              }`}
                         </p>
                       </div>
                     </div>
