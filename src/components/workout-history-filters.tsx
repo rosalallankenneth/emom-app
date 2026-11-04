@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import DatePickerField from "@/components/date-picker-field";
-import { EXERCISES, type ExerciseValue } from "@/lib/exercises";
+import { EXERCISES } from "@/lib/exercises";
 
 type Props = {
   initialExercise: string;

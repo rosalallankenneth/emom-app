@@ -59,6 +59,8 @@ export default function WorkoutForm({
   }, [state]);
 
   useEffect(() => {
+    // The date is client-local; initializing it here avoids a server/client timezone mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setWorkoutDate(getLocalDate());
   }, []);
 

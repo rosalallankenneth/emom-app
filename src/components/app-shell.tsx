@@ -3,7 +3,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   LayoutDashboard,
   History,
@@ -42,6 +48,19 @@ const navigation = [
 ];
 
 type Theme = "dark" | "light";
+
+function subscribeToTheme(callback: () => void) {
+  window.addEventListener("emom-theme-change", callback);
+  return () => window.removeEventListener("emom-theme-change", callback);
+}
+
+function getThemeSnapshot(): Theme {
+  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+}
+
+function getServerThemeSnapshot(): Theme {
+  return "dark";
+}
 
 function Brand() {
   return (
@@ -124,7 +143,11 @@ export default function AppShell({
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<Theme>("dark");
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
 
   const [toast, setToast] = useState<{
     message: string;
@@ -148,14 +171,6 @@ export default function AppShell({
     return () => window.clearTimeout(timeoutId);
   }, [toast]);
 
-  useEffect(() => {
-    setTheme(
-      document.documentElement.dataset.theme === "light"
-        ? "light"
-        : "dark",
-    );
-  }, []);
-  
   function showToast(message: string) {
     setToast({ message });
   }
@@ -165,7 +180,7 @@ export default function AppShell({
       theme === "dark" ? "light" : "dark";
 
     document.documentElement.dataset.theme = nextTheme;
-    setTheme(nextTheme);
+    window.dispatchEvent(new Event("emom-theme-change"));
 
     try {
       localStorage.setItem("emom-theme", nextTheme);

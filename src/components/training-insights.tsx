@@ -7,7 +7,6 @@ import {
   CalendarDays,
   Clock3,
   Dumbbell,
-  Repeat2,
 } from "lucide-react";
 import {
   Bar,
@@ -345,7 +344,7 @@ export default function TrainingInsights({
       reps: number;
     }[] = [];
 
-    let cursor = dateFromISO(firstBucket);
+    const cursor = dateFromISO(firstBucket);
     const end = dateFromISO(lastBucket);
 
     while (cursor <= end) {
