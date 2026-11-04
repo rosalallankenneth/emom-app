@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { EXERCISE_VALUES } from "@/lib/exercises";
+import { requireAuth } from "@/lib/require-auth";
 
 export type WorkoutFormState = {
   success: boolean;
@@ -60,6 +61,8 @@ export async function createWorkout(
   _previousState: WorkoutFormState,
   formData: FormData,
 ): Promise<WorkoutFormState> {
+  await requireAuth("/");
+
   const rawData = {
     exercise: formData.get("exercise"),
     workoutDate: formData.get("workoutDate"),
@@ -138,6 +141,8 @@ export async function updateWorkout(
   _previousState: UpdateWorkoutState,
   formData: FormData,
 ): Promise<UpdateWorkoutState> {
+  await requireAuth("/workouts");
+
   const parsed = updateWorkoutSchema.safeParse({
     id: formData.get("id"),
     exercise: formData.get("exercise"),
@@ -199,6 +204,8 @@ export async function updateWorkout(
 }
 
 export async function deleteWorkout(formData: FormData) {
+  await requireAuth("/workouts");
+
   const id = formData.get("id");
 
   if (typeof id !== "string" || !id.trim()) {

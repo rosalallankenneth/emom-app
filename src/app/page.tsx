@@ -5,6 +5,7 @@ import { getExerciseLabel } from "@/lib/exercises";
 
 import { getDashboardData } from "@/lib/data/dashboard";
 import type { DashboardPeriod } from "@/lib/dashboard-periods";
+import { requireAuth } from "@/lib/require-auth";
 
 import { ArrowUpRight } from "lucide-react";
 
@@ -29,6 +30,14 @@ export default async function DashboardPage({
   searchParams,
 }: DashboardPageProps) {
   const params = await searchParams;
+  const requestedCallback = Array.isArray(params.period)
+    ? params.period[0]
+    : params.period;
+  const callbackUrl = requestedCallback
+    ? `/?period=${encodeURIComponent(requestedCallback)}`
+    : "/";
+  await requireAuth(callbackUrl);
+
   const requestedPeriod = Array.isArray(params.period)
     ? params.period[0]
     : params.period;

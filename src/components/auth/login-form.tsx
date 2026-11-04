@@ -6,11 +6,12 @@ import { authenticate, type AuthFormState } from "@/actions/auth";
 const initialState: AuthFormState = { message: "" };
 const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand";
 
-export default function LoginForm() {
+export default function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [state, formAction, pending] = useActionState(authenticate, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
+      <input type="hidden" name="redirectTo" value={redirectTo} />
       <label className="block text-sm font-medium" htmlFor="email">
         Email
         <input id="email" name="email" type="email" autoComplete="email" required maxLength={254} className={fieldClass} />

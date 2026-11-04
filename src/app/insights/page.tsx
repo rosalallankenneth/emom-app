@@ -3,8 +3,11 @@ import { prisma } from "@/lib/prisma";
 import AppShell from "@/components/app-shell";
 import TrainingInsights from "@/components/training-insights";
 import type { ExerciseSession } from "@/components/exercise-analytics/analytics-utils";
+import { requireAuth } from "@/lib/require-auth";
 
 export default async function TrainingInsightsPage() {
+  await requireAuth("/insights");
+
   const [records, generatedAt] = await Promise.all([
     prisma.workoutSession.findMany({
       select: {

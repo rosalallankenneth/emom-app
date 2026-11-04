@@ -8,6 +8,7 @@ import EditWorkoutModal from "@/components/edit-workout-modal";
 import WorkoutHistoryFilters from "@/components/workout-history-filters";
 import { EXERCISES, getExerciseLabel } from "@/lib/exercises";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/require-auth";
 
 type SearchParams = Promise<{
   exercise?: string;
@@ -49,6 +50,12 @@ export default async function WorkoutHistoryPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
+  const callbackParams = new URLSearchParams();
+  if (params.exercise) callbackParams.set("exercise", params.exercise);
+  if (params.from) callbackParams.set("from", params.from);
+  if (params.to) callbackParams.set("to", params.to);
+  const callbackQuery = callbackParams.toString();
+  await requireAuth(callbackQuery ? `/workouts?${callbackQuery}` : "/workouts");
 
   const exercise = EXERCISES.find(
     (item) => item.value === params.exercise,
