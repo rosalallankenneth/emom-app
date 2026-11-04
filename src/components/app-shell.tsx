@@ -12,9 +12,11 @@ import {
   CheckCircle2,
   Dumbbell,
   ChartNoAxesCombined,
+  LogOut,
 } from "lucide-react";
 
 import NewWorkoutModal from "@/components/new-workout-modal";
+import { logout } from "@/actions/auth";
 
 const navigation = [
   {
@@ -119,6 +121,9 @@ export default function AppShell({
     } catch {
       // The theme still changes for the current page if storage is unavailable.
     }
+
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `emom-theme=${nextTheme}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
   }
 
   return (
@@ -233,9 +238,16 @@ export default function AppShell({
                 )}
               </button>
 
-              <div className="flex size-9 items-center justify-center rounded-full border border-border bg-background text-xs font-bold">
-                ME
-              </div>
+              <form action={logout}>
+                <button
+                  type="submit"
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className="flex size-9 items-center justify-center rounded-full border border-border bg-background text-muted transition-colors hover:text-foreground"
+                >
+                  <LogOut size={16} strokeWidth={1.8} aria-hidden="true" />
+                </button>
+              </form>
             </div>
           </header>
 
