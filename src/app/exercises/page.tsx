@@ -7,10 +7,11 @@ import AppShell from "@/components/app-shell";
 import { requireAuth } from "@/lib/require-auth";
 
 export default async function ExercisesPage() {
-  await requireAuth("/exercises");
+  const session = await requireAuth("/exercises");
 
   const [records, generatedAt] = await Promise.all([
     prisma.workoutSession.findMany({
+      where: { userId: session.user.id },
       select: {
         id: true,
         exercise: true,

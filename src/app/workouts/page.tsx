@@ -55,7 +55,9 @@ export default async function WorkoutHistoryPage({
   if (params.from) callbackParams.set("from", params.from);
   if (params.to) callbackParams.set("to", params.to);
   const callbackQuery = callbackParams.toString();
-  await requireAuth(callbackQuery ? `/workouts?${callbackQuery}` : "/workouts");
+  const session = await requireAuth(
+    callbackQuery ? `/workouts?${callbackQuery}` : "/workouts",
+  );
 
   const exercise = EXERCISES.find(
     (item) => item.value === params.exercise,
@@ -82,6 +84,7 @@ export default async function WorkoutHistoryPage({
 
   const workouts = await prisma.workoutSession.findMany({
     where: {
+      userId: session.user.id,
       ...(exercise ? { exercise } : {}),
       ...(from || to ? { workoutDate } : {}),
     },

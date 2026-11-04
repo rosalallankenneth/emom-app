@@ -63,9 +63,16 @@ function getPeriodWhere(period: DashboardPeriod) {
 }
 
 export async function getDashboardData(
+  userId: string,
   period: DashboardPeriod = "month",
 ) {
   const periodWhere = getPeriodWhere(period);
+  const where = {
+    userId,
+    ...(periodWhere?.workoutDate
+      ? { workoutDate: periodWhere.workoutDate }
+      : {}),
+  };
 
   const [
     periodRecords,
@@ -73,7 +80,7 @@ export async function getDashboardData(
     exerciseHistory,
   ] = await Promise.all([
     prisma.workoutSession.findMany({
-      ...(periodWhere ? { where: periodWhere } : {}),
+      where,
       select: {
         exercise: true,
         durationMinutes: true,
@@ -83,6 +90,7 @@ export async function getDashboardData(
 
     // Recent sessions always reflect the full workout history.
     prisma.workoutSession.findMany({
+      where: { userId },
       orderBy: [
         { workoutDate: "desc" },
         { createdAt: "desc" },
@@ -93,6 +101,7 @@ export async function getDashboardData(
     // Recommendations always reflect the full workout history.
     prisma.workoutSession.groupBy({
       by: ["exercise"],
+      where: { userId },
       _max: { workoutDate: true },
     }),
   ]);

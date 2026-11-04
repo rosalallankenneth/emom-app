@@ -6,11 +6,23 @@ import { authenticate, type AuthFormState } from "@/actions/auth";
 const initialState: AuthFormState = { message: "" };
 const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand";
 
-export default function LoginForm({ redirectTo }: { redirectTo: string }) {
+export default function LoginForm({
+  redirectTo,
+  registrationComplete,
+}: {
+  redirectTo: string;
+  registrationComplete: boolean;
+}) {
   const [state, formAction, pending] = useActionState(authenticate, initialState);
 
   return (
     <form action={formAction} className="space-y-5">
+      {registrationComplete && (
+        <p role="status" className="rounded-xl border border-brand/50 px-3 py-2 text-sm text-foreground">
+          Your account is ready. Sign in to continue.
+        </p>
+      )}
+
       <input type="hidden" name="redirectTo" value={redirectTo} />
       <label className="block text-sm font-medium" htmlFor="email">
         Email

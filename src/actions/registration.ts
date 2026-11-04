@@ -2,6 +2,7 @@
 
 import argon2 from "argon2";
 import { Prisma } from "@/generated/prisma/client";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
@@ -42,13 +43,15 @@ export async function registerAccount(
   }
 
   try {
+    const passwordHash = await argon2.hash(parsed.data.password, {
+      type: argon2.argon2id,
+    });
+
     await prisma.user.create({
       data: {
         name: parsed.data.name,
         email: parsed.data.email.toLowerCase(),
-        passwordHash: await argon2.hash(parsed.data.password, {
-          type: argon2.argon2id,
-        }),
+        passwordHash,
       },
     });
   } catch (error) {
@@ -69,8 +72,5 @@ export async function registerAccount(
     };
   }
 
-  return {
-    success: true,
-    message: "Account created. Sign in to start tracking your training.",
-  };
+  redirect("/login?registered=1");
 }

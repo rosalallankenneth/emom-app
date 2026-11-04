@@ -6,10 +6,11 @@ import type { ExerciseSession } from "@/components/exercise-analytics/analytics-
 import { requireAuth } from "@/lib/require-auth";
 
 export default async function TrainingInsightsPage() {
-  await requireAuth("/insights");
+  const session = await requireAuth("/insights");
 
   const [records, generatedAt] = await Promise.all([
     prisma.workoutSession.findMany({
+      where: { userId: session.user.id },
       select: {
         id: true,
         exercise: true,

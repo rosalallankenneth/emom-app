@@ -61,7 +61,7 @@ export async function createWorkout(
   _previousState: WorkoutFormState,
   formData: FormData,
 ): Promise<WorkoutFormState> {
-  await requireAuth("/");
+  const session = await requireAuth("/");
 
   const rawData = {
     exercise: formData.get("exercise"),
@@ -94,6 +94,7 @@ export async function createWorkout(
         repsPerMinute: data.repsPerMinute,
         externalLoadKg: data.externalLoadKg ?? null,
         notes: data.notes.trim() || null,
+        userId: session.user.id,
       },
     });
 
@@ -141,7 +142,7 @@ export async function updateWorkout(
   _previousState: UpdateWorkoutState,
   formData: FormData,
 ): Promise<UpdateWorkoutState> {
-  await requireAuth("/workouts");
+  const session = await requireAuth("/workouts");
 
   const parsed = updateWorkoutSchema.safeParse({
     id: formData.get("id"),
@@ -174,8 +175,8 @@ export async function updateWorkout(
   }
 
   try {
-    await prisma.workoutSession.update({
-      where: { id: data.id },
+    const result = await prisma.workoutSession.updateMany({
+      where: { id: data.id, userId: session.user.id },
       data: {
         exercise: data.exercise,
         workoutDate: date,
@@ -185,6 +186,13 @@ export async function updateWorkout(
         notes: data.notes.trim() || null,
       },
     });
+
+    if (result.count === 0) {
+      return {
+        success: false,
+        message: "Unable to update this workout. Please try again.",
+      };
+    }
 
     revalidatePath("/");
     revalidatePath("/workouts");
@@ -204,7 +212,7 @@ export async function updateWorkout(
 }
 
 export async function deleteWorkout(formData: FormData) {
-  await requireAuth("/workouts");
+  const session = await requireAuth("/workouts");
 
   const id = formData.get("id");
 
@@ -212,9 +220,13 @@ export async function deleteWorkout(formData: FormData) {
     throw new Error("Invalid workout ID.");
   }
 
-  await prisma.workoutSession.delete({
-    where: { id },
+  const result = await prisma.workoutSession.deleteMany({
+    where: { id, userId: session.user.id },
   });
+
+  if (result.count === 0) {
+    throw new Error("Workout not found.");
+  }
 
   revalidatePath("/");
   revalidatePath("/workouts");

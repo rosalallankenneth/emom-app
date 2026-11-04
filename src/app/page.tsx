@@ -36,7 +36,7 @@ export default async function DashboardPage({
   const callbackUrl = requestedCallback
     ? `/?period=${encodeURIComponent(requestedCallback)}`
     : "/";
-  await requireAuth(callbackUrl);
+  const session = await requireAuth(callbackUrl);
 
   const requestedPeriod = Array.isArray(params.period)
     ? params.period[0]
@@ -54,7 +54,7 @@ export default async function DashboardPage({
     recentSessions,
     recommendations,
     exerciseStats,
-  } = await getDashboardData(period);
+  } = await getDashboardData(session.user.id, period);
 
   return (
     <AppShell>

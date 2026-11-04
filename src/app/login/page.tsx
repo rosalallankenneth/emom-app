@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { getSafeRedirectTo } from "@/lib/safe-redirect";
 
 type LoginPageProps = {
-  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+  searchParams: Promise<{
+    callbackUrl?: string | string[];
+    registered?: string | string[];
+  }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -22,7 +25,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <AuthCard mode="login">
-      <LoginForm redirectTo={redirectTo} />
+      <LoginForm
+        redirectTo={redirectTo}
+        registrationComplete={params.registered === "1"}
+      />
     </AuthCard>
   );
 }
