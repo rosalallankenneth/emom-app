@@ -57,7 +57,7 @@ export default async function DashboardPage({
   } = await getDashboardData(session.user.id, period);
 
   return (
-    <AppShell>
+    <AppShell user={session.user}>
       <div className="space-y-8">
         {/* Page heading */}
         <section>

@@ -5,6 +5,7 @@ import argon2 from "argon2";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { getClientIp, isAuthAttemptLimited } from "@/lib/auth-rate-limit";
 
 const credentialsSchema = z.object({
   email: z.string().trim().email().max(254),
@@ -35,7 +36,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(rawCredentials) {
+      async authorize(rawCredentials, request) {
+        const emailCandidate =
+          typeof rawCredentials?.email === "string"
+            ? rawCredentials.email.trim().toLowerCase()
+            : undefined;
+        const rateLimited = await isAuthAttemptLimited({
+          scope: "login",
+          email: emailCandidate,
+          ip: getClientIp(request.headers),
+          emailLimit: 10,
+          ipLimit: 40,
+        });
+
+        if (rateLimited) return null;
+
         const parsed = credentialsSchema.safeParse(rawCredentials);
         if (!parsed.success) return null;
 

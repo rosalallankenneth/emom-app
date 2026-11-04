@@ -40,7 +40,7 @@ export default async function ExercisesPage() {
   }));
 
   return (
-    <AppShell>
+    <AppShell user={session.user}>
       <ExerciseAnalytics
         sessions={sessions}
         generatedAt={generatedAt}

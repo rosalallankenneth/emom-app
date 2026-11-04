@@ -2,9 +2,10 @@
 
 import { useActionState } from "react";
 import { authenticate, type AuthFormState } from "@/actions/auth";
+import FormMessage from "@/components/auth/form-message";
 
 const initialState: AuthFormState = { message: "" };
-const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand";
+const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
 export default function LoginForm({
   redirectTo,
@@ -18,9 +19,9 @@ export default function LoginForm({
   return (
     <form action={formAction} className="space-y-5">
       {registrationComplete && (
-        <p role="status" className="rounded-xl border border-brand/50 px-3 py-2 text-sm text-foreground">
+        <FormMessage type="success" title="Account created">
           Your account is ready. Sign in to continue.
-        </p>
+        </FormMessage>
       )}
 
       <input type="hidden" name="redirectTo" value={redirectTo} />
@@ -35,12 +36,12 @@ export default function LoginForm({
       </label>
 
       {state.message && (
-        <p role="alert" aria-live="polite" className="rounded-xl border border-danger-300 px-3 py-2 text-sm text-danger-700">
+        <FormMessage type="error" title="Sign-in failed">
           {state.message}
-        </p>
+        </FormMessage>
       )}
 
-      <button type="submit" disabled={pending} className="h-11 w-full rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={pending} className="h-11 w-full rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60">
         {pending ? "Signing in…" : "Sign in"}
       </button>
     </form>

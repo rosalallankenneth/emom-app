@@ -58,6 +58,47 @@ function Brand() {
   );
 }
 
+function SignedInCard({
+  name,
+  email,
+  initials,
+  compact = false,
+}: {
+  name: string;
+  email: string | null;
+  initials: string;
+  compact?: boolean;
+}) {
+  return (
+    <section
+      aria-label="Signed in account"
+      className={`rounded-2xl border border-border bg-background ${compact ? "p-3" : "p-4"}`}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          aria-hidden="true"
+          className={`flex shrink-0 items-center justify-center rounded-xl bg-brand font-bold text-brand-foreground ${compact ? "size-9 text-xs" : "size-10 text-sm"}`}
+        >
+          {initials || "A"}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+            Signed in as
+          </p>
+          <p className="truncate text-sm font-semibold" title={name}>
+            {name}
+          </p>
+          {email && name !== email && (
+            <p className="truncate text-xs text-muted" title={email}>
+              {email}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 type ToastContextValue = {
   showToast: (message: string) => void;
 };
@@ -76,8 +117,10 @@ export function useAppToast() {
 
 export default function AppShell({
   children,
+  user,
 }: {
   children: React.ReactNode;
+  user: { name?: string | null; email?: string | null };
 }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,6 +129,14 @@ export default function AppShell({
   const [toast, setToast] = useState<{
     message: string;
   } | null>(null);
+
+  const accountName = user.name?.trim() || user.email || "Account";
+  const accountInitials = accountName
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
   useEffect(() => {
     if (!toast) return;
@@ -130,9 +181,13 @@ export default function AppShell({
     <ToastContext.Provider value={{ showToast }}>
       <div className="min-h-screen">
         <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-surface px-5 py-6 lg:flex">
-          <Brand />
+          <SignedInCard
+            name={accountName}
+            email={user.email ?? null}
+            initials={accountInitials}
+          />
 
-          <div className="mt-12">
+          <div className="mt-4">
             <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted">
               Workspace
             </p>
@@ -182,10 +237,6 @@ export default function AppShell({
             </p>
           </div>
 
-          <div className="mt-5 border-t border-border pt-4">
-            <p className="text-xs text-muted">PERSONAL WORKSPACE</p>
-            <p className="mt-1 text-sm font-medium">My training</p>
-          </div>
         </aside>
 
         <div className="lg:pl-64">
@@ -196,6 +247,7 @@ export default function AppShell({
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-label="Toggle navigation"
                 aria-expanded={menuOpen}
+                aria-controls="mobile-navigation"
                 className="flex size-10 items-center justify-center rounded-xl border border-border text-lg lg:hidden"
               >
                 ☰
@@ -205,17 +257,12 @@ export default function AppShell({
                 <Brand />
               </div>
 
-              <p className="hidden text-sm text-muted lg:block">
-                Personal training /{" "}
-                <span className="text-foreground">Workspace</span>
-              </p>
+              <div className="hidden lg:block">
+                <Brand />
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="hidden text-xs text-muted sm:block">
-                YOUR PERSONAL FITNESS LOG
-              </span>
-
               <button
                 type="button"
                 onClick={toggleTheme}
@@ -243,7 +290,7 @@ export default function AppShell({
                   type="submit"
                   aria-label="Sign out"
                   title="Sign out"
-                  className="flex size-9 items-center justify-center rounded-full border border-border bg-background text-muted transition-colors hover:text-foreground"
+                  className="flex size-9 items-center justify-center rounded-full border border-border bg-background text-muted outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 >
                   <LogOut size={16} strokeWidth={1.8} aria-hidden="true" />
                 </button>
@@ -252,7 +299,18 @@ export default function AppShell({
           </header>
 
           {menuOpen && (
-            <nav className="border-b border-border bg-surface px-4 py-3 lg:hidden">
+            <nav
+              id="mobile-navigation"
+              className="fixed inset-x-0 top-[72px] z-30 max-h-[calc(100dvh-72px)] overflow-y-auto overscroll-contain border-b border-border bg-surface px-4 py-3 shadow-xl lg:hidden"
+            >
+              <div className="mb-3">
+                <SignedInCard
+                  name={accountName}
+                  email={user.email ?? null}
+                  initials={accountInitials}
+                  compact
+                />
+              </div>
               {navigation.map((item) => {
                 const isActive =
                   item.href === "/"

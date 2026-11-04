@@ -3,9 +3,11 @@
 import argon2 from "argon2";
 import { Prisma } from "@/generated/prisma/client";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { getClientIp, isAuthAttemptLimited } from "@/lib/auth-rate-limit";
 
 export type RegistrationState = {
   success: boolean;
@@ -28,9 +30,27 @@ export async function registerAccount(
   _previousState: RegistrationState,
   formData: FormData,
 ): Promise<RegistrationState> {
+  const requestHeaders = await headers();
+  const rawEmail = formData.get("email");
+  const email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : undefined;
+  const rateLimited = await isAuthAttemptLimited({
+    scope: "registration",
+    email,
+    ip: getClientIp(requestHeaders),
+    emailLimit: 3,
+    ipLimit: 5,
+  });
+
+  if (rateLimited) {
+    return {
+      success: false,
+      message: "Too many attempts. Please try again in 15 minutes.",
+    };
+  }
+
   const parsed = registrationSchema.safeParse({
     name: formData.get("name"),
-    email: formData.get("email"),
+    email: rawEmail,
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
   });

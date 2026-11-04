@@ -2,9 +2,10 @@
 
 import { useActionState } from "react";
 import { registerAccount, type RegistrationState } from "@/actions/registration";
+import FormMessage from "@/components/auth/form-message";
 
 const initialState: RegistrationState = { success: false, message: "" };
-const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand";
+const fieldClass = "mt-2 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-brand focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 
 export default function RegistrationForm() {
   const [state, formAction, pending] = useActionState(registerAccount, initialState);
@@ -33,12 +34,15 @@ export default function RegistrationForm() {
       </label>
 
       {state.message && (
-        <p role={state.success ? "status" : "alert"} aria-live="polite" className={`rounded-xl border px-3 py-2 text-sm ${state.success ? "border-brand/50 text-foreground" : "border-danger-300 text-danger-700"}`}>
+        <FormMessage
+          type={state.success ? "success" : "error"}
+          title={state.success ? "Account created" : "We couldn’t create your account"}
+        >
           {state.message}
-        </p>
+        </FormMessage>
       )}
 
-      <button type="submit" disabled={pending || state.success} className="h-11 w-full rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60">
+      <button type="submit" disabled={pending || state.success} className="h-11 w-full rounded-xl bg-brand px-4 text-sm font-bold text-brand-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60">
         {pending ? "Creating account…" : "Create account"}
       </button>
     </form>

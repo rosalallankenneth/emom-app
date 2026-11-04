@@ -253,7 +253,7 @@ export default async function WorkoutHistoryPage({
   ];
 
   return (
-    <AppShell>
+    <AppShell user={session.user}>
       <div className="space-y-7">
         <header>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand">

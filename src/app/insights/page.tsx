@@ -39,7 +39,7 @@ export default async function TrainingInsightsPage() {
   }));
 
   return (
-    <AppShell>
+    <AppShell user={session.user}>
       <TrainingInsights
         sessions={sessions}
         generatedAt={generatedAt}
