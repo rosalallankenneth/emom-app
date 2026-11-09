@@ -46,7 +46,7 @@ export default function ExerciseAnalytics({
   const [selectedExercise, setSelectedExercise] =
     useState<ExerciseValue>("PULL_UPS");
   const [period, setPeriod] = useState<Period>("30d");
-  const [metric, setMetric] = useState<Metric>("rate");
+  const [metric, setMetric] = useState<Metric>("all");
 
   const now = useMemo(
     () => new Date(generatedAt),
@@ -114,21 +114,24 @@ export default function ExerciseAnalytics({
   );
 
   const chartData = useMemo<PerformancePoint[]>(
-    () =>
-      currentSessions.map((session) => ({
+    () => {
+      return currentSessions.map((session) => ({
         id: session.id,
         date: session.workoutDate,
         dateLabel: formatDate(session.workoutDate),
         value:
-          metric === "rate"
-            ? session.repsPerMinute
-            : metric === "reps"
-              ? getTotalReps(session)
-              : session.durationMinutes,
+          metric === "all"
+            ? 0
+            : metric === "rate"
+              ? session.repsPerMinute
+              : metric === "reps"
+                ? getTotalReps(session)
+                : session.durationMinutes,
         durationMinutes: session.durationMinutes,
         repsPerMinute: session.repsPerMinute,
         totalReps: getTotalReps(session),
-      })),
+      }));
+    },
     [currentSessions, metric],
   );
 
@@ -180,7 +183,7 @@ export default function ExerciseAnalytics({
 
   const metricLabel =
     METRICS.find((item) => item.value === metric)?.label ??
-    "Reps / min";
+    "All";
 
   const exerciseLabel =
     EXERCISES.find((item) => item.value === selectedExercise)?.label ??

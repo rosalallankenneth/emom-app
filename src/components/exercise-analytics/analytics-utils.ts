@@ -13,7 +13,7 @@ export type ExerciseSession = {
 };
 
 export type Period = "30d" | "90d" | "6m" | "all";
-export type Metric = "rate" | "reps" | "duration";
+export type Metric = "all" | "rate" | "reps" | "duration";
 
 export const PERIODS: {
   value: Period;
@@ -27,6 +27,7 @@ export const PERIODS: {
 ];
 
 export const METRICS: { value: Metric; label: string }[] = [
+  { value: "all", label: "All" },
   { value: "rate", label: "Reps / min" },
   { value: "reps", label: "Total reps" },
   { value: "duration", label: "Duration" },
