@@ -47,13 +47,31 @@ type DashboardOverviewProps = {
   recommendations: Recommendation[];
 };
 
-type ChartMetric = "minutes" | "sessions" | "reps";
+type ChartMetric = "all" | "minutes" | "sessions" | "reps";
 
 const METRICS: { value: ChartMetric; label: string }[] = [
+  { value: "all", label: "All" },
   { value: "minutes", label: "Minutes" },
   { value: "sessions", label: "Sessions" },
   { value: "reps", label: "Reps" },
 ];
+
+const ALL_SERIES = [
+  { key: "minutesIndex", valueKey: "minutes", label: "Minutes", color: "var(--accent)" },
+  { key: "sessionsIndex", valueKey: "sessions", label: "Sessions", color: "#6fa8e8" },
+  { key: "repsIndex", valueKey: "reps", label: "Reps", color: "#b18ad1" },
+] as const;
+
+function formatChartValue(value: number, metric: ChartMetric) {
+  const formatted = value.toLocaleString("en-PH", {
+    maximumFractionDigits: 0,
+  });
+
+  if (metric === "minutes") return `${formatted} min`;
+  if (metric === "sessions") return `${formatted} ${value === 1 ? "session" : "sessions"}`;
+  if (metric === "reps") return `${formatted} reps`;
+  return formatted;
+}
 
 function formatDuration(totalMinutes: number) {
   const hours = Math.floor(totalMinutes / 60);
@@ -89,7 +107,7 @@ export default function DashboardOverview({
 }: DashboardOverviewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [metric, setMetric] = useState<ChartMetric>("minutes");
+  const [metric, setMetric] = useState<ChartMetric>("all");
 
   const stats = [
     {
@@ -125,12 +143,31 @@ export default function DashboardOverview({
     router.replace(query ? `/?${query}` : "/", { scroll: false });
   }
 
-  const metricLabel = METRICS.find((item) => item.value === metric)?.label ?? "Sessions";
+  const metricLabel = METRICS.find((item) => item.value === metric)?.label ?? "All";
+  const maxima = {
+    minutes: Math.max(0, ...exerciseStats.map((exercise) => exercise.minutes)),
+    sessions: Math.max(0, ...exerciseStats.map((exercise) => exercise.sessions)),
+    reps: Math.max(0, ...exerciseStats.map((exercise) => exercise.reps)),
+  };
 
   const chartData = exerciseStats.map((exercise) => ({
     exercise: exercise.label,
-    value: exercise[metric],
+    minutes: exercise.minutes,
+    sessions: exercise.sessions,
+    reps: exercise.reps,
+    minutesIndex: maxima.minutes ? (exercise.minutes / maxima.minutes) * 100 : 0,
+    sessionsIndex: maxima.sessions ? (exercise.sessions / maxima.sessions) * 100 : 0,
+    repsIndex: maxima.reps
+      ? (exercise.reps / maxima.reps) * 100
+      : 0,
+    value:
+      metric === "all"
+        ? 0
+        : exercise[metric],
   }));
+  const hasExerciseData = exerciseStats.some(
+    (exercise) => exercise.sessions > 0,
+  );
 
   return (
     <div className="space-y-8">
@@ -202,37 +239,56 @@ export default function DashboardOverview({
               <div>
                 <h3 className="font-semibold">Training by exercise</h3>
                 <p className="mt-1 text-xs text-muted">
-                  {metricLabel} ·{" "}
+                  {metric === "all" ? "Relative comparison" : metricLabel}
+                  {" · "}
                   {DASHBOARD_PERIODS.find(
                     (option) => option.value === period,
                   )?.label}
                 </p>
               </div>
 
-              <div
-                className="flex w-fit rounded-xl border border-border bg-background p-1"
-                aria-label="Chart metric"
-              >
-                {METRICS.map((item) => (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => setMetric(item.value)}
-                    aria-pressed={metric === item.value}
-                    className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
-                      metric === item.value
-                        ? "bg-foreground text-background"
-                        : "text-muted hover:text-foreground"
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+              <div className="flex flex-col gap-2 sm:items-end">
+                <div
+                  className="flex w-fit rounded-xl border border-border bg-background p-1"
+                  aria-label="Chart metric"
+                >
+                  {METRICS.map((item) => (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => setMetric(item.value)}
+                      aria-pressed={metric === item.value}
+                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                        metric === item.value
+                          ? "bg-foreground text-background"
+                          : "text-muted hover:text-foreground"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+                {metric === "all" && (
+                  <p className="whitespace-nowrap text-[11px] leading-4 text-muted sm:text-right">
+                    Each metric is scaled to its own maximum. Hover for actual values.
+                  </p>
+                )}
               </div>
             </div>
 
+            {metric === "all" && (
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2" aria-label="Chart legend">
+                {ALL_SERIES.map((series) => (
+                  <span key={series.key} className="inline-flex items-center gap-2 text-xs text-muted">
+                    <span className="size-2.5 rounded-sm" style={{ backgroundColor: series.color }} />
+                    {series.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="mt-5 h-[300px] w-full sm:h-[340px]">
-              {sessionCount === 0 ? (
+              {!hasExerciseData ? (
                 <div className="flex h-full flex-col items-center justify-center text-center">
                   <Activity
                     size={28}
@@ -240,7 +296,7 @@ export default function DashboardOverview({
                     aria-hidden="true"
                   />
                   <p className="mt-3 text-sm font-medium">
-                    No workouts in this period
+                    No standard-exercise workouts in this period
                   </p>
                   <p className="mt-1 text-xs text-muted">
                     Your exercise breakdown will appear here once you log a session.
@@ -250,7 +306,7 @@ export default function DashboardOverview({
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={chartData}
-                    margin={{ top: 12, right: 8, left: -16, bottom: 42 }}
+                    margin={{ top: 12, right: 8, left: 8, bottom: 42 }}
                   >
                     <CartesianGrid
                       vertical={false}
@@ -268,13 +324,18 @@ export default function DashboardOverview({
                       tickLine={false}
                     />
                     <YAxis
-                      allowDecimals={false}
-                      width={42}
+                      allowDecimals={metric === "all"}
+                      domain={metric === "all" ? [0, 100] : undefined}
+                      width={52}
                       tick={{ fill: "var(--muted)", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}
                       tickFormatter={(value: number) =>
-                        Number(value).toLocaleString("en-PH")
+                        metric === "all"
+                          ? `${Math.round(value)}%`
+                          : Number(value).toLocaleString("en-PH", {
+                              maximumFractionDigits: 0,
+                            })
                       }
                     />
                     <Tooltip
@@ -286,18 +347,47 @@ export default function DashboardOverview({
                         color: "var(--foreground)",
                         fontSize: 12,
                       }}
-                      formatter={(value) => [
-                        Number(value).toLocaleString("en-PH"),
-                        metricLabel,
-                      ]}
+                      formatter={(value, name, item) => {
+                        const numericValue = Number(value);
+                        if (metric === "all") {
+                          const series = ALL_SERIES.find((entry) => entry.label === name);
+                          const actualValue = Number(item.payload?.[series?.valueKey ?? ""] ?? 0);
+                          const sourceMetric = series?.valueKey ?? "minutes";
+                          return [
+                            formatChartValue(
+                              actualValue,
+                              sourceMetric === "reps" ? "reps" : sourceMetric,
+                            ),
+                            String(name),
+                          ];
+                        }
+
+                        return [
+                          formatChartValue(numericValue, metric),
+                          METRICS.find((entry) => entry.value === metric)?.label ?? metricLabel,
+                        ];
+                      }}
                     />
-                    <Bar
-                      dataKey="value"
-                      name={metricLabel}
-                      fill="var(--accent)"
-                      radius={[5, 5, 0, 0]}
-                      maxBarSize={36}
-                    />
+                    {metric === "all" ? (
+                      ALL_SERIES.map((series) => (
+                        <Bar
+                          key={series.key}
+                          dataKey={series.key}
+                          name={series.label}
+                          fill={series.color}
+                          radius={[4, 4, 0, 0]}
+                          maxBarSize={14}
+                        />
+                      ))
+                    ) : (
+                      <Bar
+                        dataKey="value"
+                        name={metricLabel}
+                        fill="var(--accent)"
+                        radius={[5, 5, 0, 0]}
+                        maxBarSize={36}
+                      />
+                    )}
                   </BarChart>
                 </ResponsiveContainer>
               )}
