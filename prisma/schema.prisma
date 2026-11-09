@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -17,19 +16,21 @@ enum Exercise {
   SQUATS
   SPLIT_SQUATS
   RDLS
+  OTHER
 }
 
 model WorkoutSession {
-  id              String   @id @default(cuid())
-  exercise        Exercise
-  workoutDate     DateTime
-  durationMinutes Int      @default(20)
-  repsPerMinute   Int
-  externalLoadKg  Float?
-  notes           String?
-  userId          String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  exercise           Exercise
+  customExerciseName String?
+  workoutDate        DateTime
+  durationMinutes    Int      @default(20)
+  repsPerMinute      Int?
+  externalLoadKg     Float?
+  notes              String?
+  userId             String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
@@ -39,9 +40,9 @@ model WorkoutSession {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String           @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?          @unique
   emailVerified DateTime?
   image         String?
   passwordHash  String?

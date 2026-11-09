@@ -14,6 +14,7 @@ export default async function TrainingInsightsPage() {
       select: {
         id: true,
         exercise: true,
+        customExerciseName: true,
         workoutDate: true,
         durationMinutes: true,
         repsPerMinute: true,
@@ -31,9 +32,10 @@ export default async function TrainingInsightsPage() {
   const sessions: ExerciseSession[] = records.map((session) => ({
     id: session.id,
     exercise: session.exercise,
+    customExerciseName: session.customExerciseName,
     workoutDate: session.workoutDate.toISOString().slice(0, 10),
     durationMinutes: session.durationMinutes,
-    repsPerMinute: session.repsPerMinute,
+    repsPerMinute: session.repsPerMinute ?? 0,
     externalLoadKg: session.externalLoadKg,
     createdAt: session.createdAt.toISOString(),
   }));

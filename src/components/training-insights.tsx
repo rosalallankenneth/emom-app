@@ -275,6 +275,10 @@ export default function TrainingInsights({
     };
   }, [currentSessions, previousSessions, days, sessions, today]);
 
+  const standardCurrentSessions = currentSessions.filter(
+    (session) => session.exercise !== "OTHER",
+  );
+
   const distribution = EXERCISES.map((exercise) => {
     const exerciseSessions = currentSessions.filter(
       (session) => session.exercise === exercise.value,
@@ -290,8 +294,8 @@ export default function TrainingInsights({
       ...exercise,
       count: exerciseSessions.length,
       percentage:
-        currentSessions.length > 0
-          ? (exerciseSessions.length / currentSessions.length) * 100
+        standardCurrentSessions.length > 0
+          ? (exerciseSessions.length / standardCurrentSessions.length) * 100
           : 0,
       lastDate: lastSession?.workoutDate ?? null,
       daysSince:
@@ -391,7 +395,7 @@ export default function TrainingInsights({
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
             Understand your training balance, consistency, and workload
-            across all eight exercises.
+            across the eight standard exercises.
           </p>
         </div>
 
@@ -451,7 +455,7 @@ export default function TrainingInsights({
           <div>
             <h2 className="text-lg font-bold">Training Distribution</h2>
             <p className="mt-1 text-sm text-muted">
-              How your sessions are divided across all eight exercises.
+              How your standard exercise sessions are divided across the eight movements.
             </p>
           </div>
 
@@ -487,9 +491,9 @@ export default function TrainingInsights({
             ))}
           </div>
 
-          {currentSessions.length === 0 && (
+          {standardCurrentSessions.length === 0 && (
             <p className="mt-5 rounded-xl bg-background p-4 text-sm text-muted">
-              No sessions were logged during this period.
+              No standard exercise sessions were logged during this period.
             </p>
           )}
         </section>

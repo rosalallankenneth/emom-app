@@ -6,7 +6,7 @@ import AppShell from "@/components/app-shell";
 import DeleteWorkoutButton from "@/components/delete-workout-button";
 import EditWorkoutModal from "@/components/edit-workout-modal";
 import WorkoutHistoryFilters from "@/components/workout-history-filters";
-import { EXERCISES, getExerciseLabel } from "@/lib/exercises";
+import { ALL_EXERCISES, EXERCISES, getWorkoutExerciseLabel } from "@/lib/exercises";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
 
@@ -59,7 +59,7 @@ export default async function WorkoutHistoryPage({
     callbackQuery ? `/workouts?${callbackQuery}` : "/workouts",
   );
 
-  const exercise = EXERCISES.find(
+  const exercise = ALL_EXERCISES.find(
     (item) => item.value === params.exercise,
   )?.value;
 
@@ -95,6 +95,9 @@ export default async function WorkoutHistoryPage({
   });
 
   const sessionCount = workouts.length;
+  const summaryWorkouts = workouts.filter(
+    (workout) => workout.exercise !== "OTHER",
+  );
 
   const totalDuration = workouts.reduce(
     (total, workout) => total + workout.durationMinutes,
@@ -103,23 +106,34 @@ export default async function WorkoutHistoryPage({
 
   const totalReps = workouts.reduce(
     (total, workout) =>
-      total + workout.durationMinutes * workout.repsPerMinute,
+      total + workout.durationMinutes * (workout.repsPerMinute ?? 0),
     0,
   );
 
+  const summaryDuration = summaryWorkouts.reduce(
+    (total, workout) => total + workout.durationMinutes,
+    0,
+  );
   const averageDuration =
-    sessionCount > 0 ? totalDuration / sessionCount : null;
+    summaryWorkouts.length > 0 ? summaryDuration / summaryWorkouts.length : null;
 
+  const workoutsWithReps = summaryWorkouts.filter(
+    (workout) => workout.repsPerMinute !== null,
+  );
   const averageRepsPerMinute =
-    sessionCount > 0
-      ? workouts.reduce(
-          (total, workout) => total + workout.repsPerMinute,
+    workoutsWithReps.length > 0
+      ? workoutsWithReps.reduce(
+          (total, workout) => total + (workout.repsPerMinute ?? 0),
           0,
-        ) / sessionCount
+        ) / workoutsWithReps.length
       : null;
 
+  const summaryTotalReps = workoutsWithReps.reduce(
+    (total, workout) => total + workout.durationMinutes * (workout.repsPerMinute ?? 0),
+    0,
+  );
   const averageReps =
-    sessionCount > 0 ? totalReps / sessionCount : null;
+    workoutsWithReps.length > 0 ? summaryTotalReps / workoutsWithReps.length : null;
 
   const sessionsByExercise = new Map<
     string,
@@ -150,8 +164,8 @@ export default async function WorkoutHistoryPage({
       { label: "—", count: 0 },
     );
 
-  const longestWorkout = workouts.reduce<
-    (typeof workouts)[number] | null
+  const longestWorkout = summaryWorkouts.reduce<
+    (typeof summaryWorkouts)[number] | null
   >(
     (best, workout) =>
       !best || workout.durationMinutes > best.durationMinutes
@@ -160,24 +174,24 @@ export default async function WorkoutHistoryPage({
     null,
   );
 
-  const highestRepsPerMinute = workouts.reduce<
-    (typeof workouts)[number] | null
+  const highestRepsPerMinute = workoutsWithReps.reduce<
+    (typeof workoutsWithReps)[number] | null
   >(
     (best, workout) =>
-      !best || workout.repsPerMinute > best.repsPerMinute
+      !best || (workout.repsPerMinute ?? 0) > (best.repsPerMinute ?? 0)
         ? workout
         : best,
     null,
   );
 
-  const highestTotalReps = workouts.reduce<
-    (typeof workouts)[number] | null
+  const highestTotalReps = workoutsWithReps.reduce<
+    (typeof workoutsWithReps)[number] | null
   >(
     (best, workout) => {
-      const reps = workout.durationMinutes * workout.repsPerMinute;
+      const reps = workout.durationMinutes * (workout.repsPerMinute ?? 0);
 
       const bestReps = best
-        ? best.durationMinutes * best.repsPerMinute
+        ? best.durationMinutes * (best.repsPerMinute ?? 0)
         : -1;
 
       return !best || reps > bestReps ? workout : best;
@@ -202,16 +216,16 @@ export default async function WorkoutHistoryPage({
         ? `${longestWorkout.durationMinutes} min`
         : "—",
       detail: longestWorkout
-        ? getExerciseLabel(longestWorkout.exercise)
+        ? getWorkoutExerciseLabel(longestWorkout.exercise)
         : "No sessions",
     },
     {
       label: "Highest reps/min",
       value: highestRepsPerMinute
-        ? formatNumber(highestRepsPerMinute.repsPerMinute)
+        ? formatNumber(highestRepsPerMinute.repsPerMinute ?? 0)
         : "—",
       detail: highestRepsPerMinute
-        ? getExerciseLabel(highestRepsPerMinute.exercise)
+        ? getWorkoutExerciseLabel(highestRepsPerMinute.exercise)
         : "No sessions",
     },
     {
@@ -219,11 +233,11 @@ export default async function WorkoutHistoryPage({
       value: highestTotalReps
         ? formatNumber(
             highestTotalReps.durationMinutes *
-              highestTotalReps.repsPerMinute,
+              (highestTotalReps.repsPerMinute ?? 0),
           )
         : "—",
       detail: highestTotalReps
-        ? getExerciseLabel(highestTotalReps.exercise)
+        ? getWorkoutExerciseLabel(highestTotalReps.exercise)
         : "No sessions",
     },
     {
@@ -355,8 +369,13 @@ export default async function WorkoutHistoryPage({
                   >
                     <div className="min-w-0">
                       <h3 className="font-semibold">
-                        {getExerciseLabel(workout.exercise)}
+                        {getWorkoutExerciseLabel(workout.exercise, workout.customExerciseName)}
                       </h3>
+                      {workout.exercise === "OTHER" && (
+                        <span className="mt-1 inline-flex rounded-md bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          Other
+                        </span>
+                      )}
 
                       {workout.externalLoadKg != null &&
                         workout.externalLoadKg > 0 && (
@@ -390,17 +409,18 @@ export default async function WorkoutHistoryPage({
                       <span className="text-muted lg:hidden">
                         Reps/min
                       </span>
-                      {workout.repsPerMinute}
+                      {workout.repsPerMinute ?? "—"}
                     </div>
 
                     <div className="flex justify-between gap-3 text-sm font-semibold tabular-nums lg:block">
                       <span className="font-normal text-muted lg:hidden">
                         Total reps
                       </span>
-                      {formatNumber(
-                        workout.durationMinutes *
-                          workout.repsPerMinute,
-                      )}
+                      {workout.repsPerMinute === null
+                        ? "—"
+                        : formatNumber(
+                            workout.durationMinutes * workout.repsPerMinute,
+                          )}
                     </div>
 
                     <div className="flex items-center justify-end gap-2">
@@ -408,6 +428,7 @@ export default async function WorkoutHistoryPage({
                         workout={{
                           id: workout.id,
                           exercise: workout.exercise,
+                          customExerciseName: workout.customExerciseName,
                           workoutDate: workout.workoutDate
                             .toISOString()
                             .slice(0, 10),

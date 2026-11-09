@@ -11,7 +11,7 @@ export default async function ExercisesPage() {
 
   const [records, generatedAt] = await Promise.all([
     prisma.workoutSession.findMany({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, exercise: { not: "OTHER" } },
       select: {
         id: true,
         exercise: true,
@@ -34,7 +34,7 @@ export default async function ExercisesPage() {
     exercise: session.exercise,
     workoutDate: session.workoutDate.toISOString().slice(0, 10),
     durationMinutes: session.durationMinutes,
-    repsPerMinute: session.repsPerMinute,
+    repsPerMinute: session.repsPerMinute ?? 0,
     externalLoadKg: session.externalLoadKg,
     createdAt: session.createdAt.toISOString(),
   }));

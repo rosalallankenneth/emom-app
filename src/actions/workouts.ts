@@ -21,6 +21,7 @@ export type UpdateWorkoutState = {
 const workoutSchema = z
   .object({
     exercise: z.enum(EXERCISE_VALUES),
+    customExerciseName: z.string().trim().max(100).optional(),
 
     workoutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
       message: "Enter a valid workout date.",
@@ -28,7 +29,10 @@ const workoutSchema = z
 
     durationMinutes: z.coerce.number().int().min(10).max(30),
 
-    repsPerMinute: z.coerce.number().int().min(0).max(1000),
+    repsPerMinute: z.preprocess(
+      (value) => value === "" || value === null ? undefined : value,
+      z.coerce.number().int().min(0).max(1000).optional(),
+    ),
 
     externalLoadKg: z.preprocess(
       (value) =>
@@ -43,6 +47,20 @@ const workoutSchema = z
     }),
   })
   .superRefine((data, ctx) => {
+    if (data.exercise === "OTHER" && !data.customExerciseName?.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["customExerciseName"],
+        message: "Enter the name of the exercise.",
+      });
+    }
+    if (data.exercise !== "OTHER" && data.repsPerMinute === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["repsPerMinute"],
+        message: "Enter reps per minute for this exercise.",
+      });
+    }
     const date = new Date(`${data.workoutDate}T00:00:00.000Z`);
 
     if (
@@ -65,6 +83,7 @@ export async function createWorkout(
 
   const rawData = {
     exercise: formData.get("exercise"),
+    customExerciseName: formData.get("customExerciseName") ?? "",
     workoutDate: formData.get("workoutDate"),
     durationMinutes: formData.get("durationMinutes"),
     repsPerMinute: formData.get("repsPerMinute"),
@@ -87,6 +106,8 @@ export async function createWorkout(
     await prisma.workoutSession.create({
       data: {
         exercise: data.exercise,
+        customExerciseName:
+          data.exercise === "OTHER" ? data.customExerciseName?.trim() : null,
         workoutDate: new Date(
           `${data.workoutDate}T00:00:00.000Z`,
         ),
@@ -118,9 +139,13 @@ export async function createWorkout(
 const updateWorkoutSchema = z.object({
   id: z.string().min(1),
   exercise: z.enum(EXERCISE_VALUES),
+  customExerciseName: z.string().trim().max(100).optional(),
   workoutDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   durationMinutes: z.coerce.number().int().min(10).max(30),
-  repsPerMinute: z.coerce.number().int().min(0).max(1000),
+  repsPerMinute: z.preprocess(
+    (value) => value === "" || value === null ? undefined : value,
+    z.coerce.number().int().min(0).max(1000).optional(),
+  ),
   externalLoadKg: z.preprocess(
     (value) => {
       if (value === "" || value === null || value === undefined) {
@@ -136,6 +161,13 @@ const updateWorkoutSchema = z.object({
     z.number().positive().max(1000).optional(),
   ),
   notes: z.string().max(1000),
+}).superRefine((data, ctx) => {
+  if (data.exercise === "OTHER" && !data.customExerciseName?.trim()) {
+    ctx.addIssue({ code: "custom", path: ["customExerciseName"], message: "Enter the name of the exercise." });
+  }
+  if (data.exercise !== "OTHER" && data.repsPerMinute === undefined) {
+    ctx.addIssue({ code: "custom", path: ["repsPerMinute"], message: "Enter reps per minute for this exercise." });
+  }
 });
 
 export async function updateWorkout(
@@ -147,6 +179,7 @@ export async function updateWorkout(
   const parsed = updateWorkoutSchema.safeParse({
     id: formData.get("id"),
     exercise: formData.get("exercise"),
+    customExerciseName: formData.get("customExerciseName") ?? "",
     workoutDate: formData.get("workoutDate"),
     durationMinutes: formData.get("durationMinutes"),
     repsPerMinute: formData.get("repsPerMinute"),
@@ -179,6 +212,8 @@ export async function updateWorkout(
       where: { id: data.id, userId: session.user.id },
       data: {
         exercise: data.exercise,
+        customExerciseName:
+          data.exercise === "OTHER" ? data.customExerciseName?.trim() : null,
         workoutDate: date,
         durationMinutes: data.durationMinutes,
         repsPerMinute: data.repsPerMinute,

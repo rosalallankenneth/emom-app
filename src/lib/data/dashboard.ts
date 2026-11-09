@@ -88,9 +88,9 @@ export async function getDashboardData(
       },
     }),
 
-    // Recent sessions always reflect the full workout history.
+    // Recent sessions show the fixed exercise program only.
     prisma.workoutSession.findMany({
-      where: { userId },
+      where: { userId, exercise: { not: "OTHER" } },
       orderBy: [
         { workoutDate: "desc" },
         { createdAt: "desc" },
@@ -115,7 +115,7 @@ export async function getDashboardData(
 
   const totalReps = periodRecords.reduce(
     (total, session) =>
-      total + session.durationMinutes * session.repsPerMinute,
+      total + session.durationMinutes * (session.repsPerMinute ?? 0),
     0,
   );
 
@@ -140,7 +140,7 @@ export async function getDashboardData(
     stats.sessions += 1;
     stats.minutes += session.durationMinutes;
     stats.reps +=
-      session.durationMinutes * session.repsPerMinute;
+      session.durationMinutes * (session.repsPerMinute ?? 0);
   }
 
   const exerciseStats = EXERCISES.map((exercise) => {

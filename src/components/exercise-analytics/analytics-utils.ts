@@ -4,6 +4,7 @@ import type { ExerciseValue } from "@/lib/exercises";
 export type ExerciseSession = {
   id: string;
   exercise: ExerciseValue;
+  customExerciseName?: string | null;
   workoutDate: string;
   durationMinutes: number;
   repsPerMinute: number;
@@ -39,7 +40,7 @@ export type ExerciseStats = {
 };
 
 export function getTotalReps(session: ExerciseSession) {
-  return session.durationMinutes * session.repsPerMinute;
+  return session.durationMinutes * (session.repsPerMinute ?? 0);
 }
 
 export function formatNumber(

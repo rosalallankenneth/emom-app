@@ -8,7 +8,7 @@ import {
   createWorkout,
   type WorkoutFormState,
 } from "../actions/workouts";
-import { EXERCISES } from "@/lib/exercises";
+import { ALL_EXERCISES } from "@/lib/exercises";
 import DatePickerField from "@/components/date-picker-field";
 
 const initialState: WorkoutFormState = {
@@ -84,13 +84,30 @@ export default function WorkoutForm({
             className={inputClass}
             required
           >
-            {EXERCISES.map((item) => (
+            {ALL_EXERCISES.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>
             ))}
           </select>
         </div>
+
+        {exercise === "OTHER" && (
+          <div>
+            <label className={labelClass} htmlFor="customExerciseName">
+              Exercise name
+            </label>
+            <input
+              id="customExerciseName"
+              name="customExerciseName"
+              type="text"
+              maxLength={100}
+              required
+              className={inputClass}
+              placeholder="e.g. Cycling"
+            />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -146,12 +163,13 @@ export default function WorkoutForm({
             inputMode="numeric"
             className={inputClass}
             placeholder="e.g. 5"
-            required
+            required={exercise !== "OTHER"}
           />
 
           <p className="mt-1 text-xs text-default-500">
-            Enter the number of reps completed each minute throughout
-            this session.
+            {exercise === "OTHER"
+              ? "Optional for other exercise sessions."
+              : "Enter the number of reps completed each minute throughout this session."}
           </p>
         </div>
 

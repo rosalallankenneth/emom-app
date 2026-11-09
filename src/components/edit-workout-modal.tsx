@@ -10,15 +10,16 @@ import {
   updateWorkout,
   type UpdateWorkoutState,
 } from "@/actions/workouts";
-import { EXERCISES, type ExerciseValue } from "@/lib/exercises";
+import { ALL_EXERCISES, type ExerciseValue } from "@/lib/exercises";
 import DatePickerField from "./date-picker-field";
 
 type WorkoutToEdit = {
   id: string;
   exercise: ExerciseValue;
+  customExerciseName: string | null;
   workoutDate: string;
   durationMinutes: number;
-  repsPerMinute: number;
+  repsPerMinute: number | null;
   externalLoadKg: number | null;
   notes: string | null;
 };
@@ -105,6 +106,9 @@ function EditWorkoutForm({
   const [externalLoadKg, setExternalLoadKg] = useState(
     workout.externalLoadKg?.toString() ?? "",
   );
+  const [customExerciseName, setCustomExerciseName] = useState(
+    workout.customExerciseName ?? "",
+  );
 
   const router = useRouter();
 
@@ -135,13 +139,28 @@ function EditWorkoutForm({
             required
             className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-3"
           >
-            {EXERCISES.map((item) => (
+            {ALL_EXERCISES.map((item) => (
               <option key={item.value} value={item.value}>
                 {item.label}
               </option>
             ))}
           </select>
         </label>
+
+        {exercise === "OTHER" && (
+          <label className="block text-sm font-medium">
+            Exercise name
+            <input
+              type="text"
+              name="customExerciseName"
+              value={customExerciseName}
+              onChange={(event) => setCustomExerciseName(event.target.value)}
+              maxLength={100}
+              required
+              className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-3"
+            />
+          </label>
+        )}
 
         <div className="space-y-2">
           <label className="block text-sm font-medium">
@@ -181,12 +200,14 @@ function EditWorkoutForm({
             min={0}
             max={1000}
             step={1}
-            defaultValue={workout.repsPerMinute}
-            required
+            defaultValue={workout.repsPerMinute ?? ""}
+            required={exercise !== "OTHER"}
             className="mt-2 h-11 w-full rounded-xl border border-border bg-background px-3"
           />
           <span className="mt-1 block text-xs font-normal text-muted">
-            Total reps = duration × reps per minute.
+            {exercise === "OTHER"
+              ? "Optional for other exercise sessions."
+              : "Total reps = duration × reps per minute."}
           </span>
         </label>
 

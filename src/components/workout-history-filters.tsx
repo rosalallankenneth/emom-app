@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import DatePickerField from "@/components/date-picker-field";
-import { EXERCISES } from "@/lib/exercises";
+import { ALL_EXERCISES } from "@/lib/exercises";
 
 type Props = {
   initialExercise: string;
@@ -38,7 +38,7 @@ export default function WorkoutHistoryFilters({
           className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm"
         >
           <option value="">All exercises</option>
-          {EXERCISES.map((item) => (
+          {ALL_EXERCISES.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
             </option>

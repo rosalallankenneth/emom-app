@@ -8,9 +8,11 @@ export const EXERCISE_VALUES = [
   "SQUATS",
   "SPLIT_SQUATS",
   "RDLS",
+  "OTHER",
 ] as const;
 
 export type ExerciseValue = (typeof EXERCISE_VALUES)[number];
+export type StandardExerciseValue = Exclude<ExerciseValue, "OTHER">;
 
 export const EXERCISES = [
   { value: "PULL_UPS", label: "Pull-ups" },
@@ -22,13 +24,27 @@ export const EXERCISES = [
   { value: "SPLIT_SQUATS", label: "Split squats" },
   { value: "RDLS", label: "Romanian deadlifts (RDLs)" },
 ] as const satisfies readonly {
-  value: ExerciseValue;
+  value: StandardExerciseValue;
   label: string;
 }[];
 
+export const ALL_EXERCISES = [
+  ...EXERCISES,
+  { value: "OTHER", label: "Other" },
+] as const satisfies readonly { value: ExerciseValue; label: string }[];
+
 export function getExerciseLabel(value: ExerciseValue): string {
   return (
-    EXERCISES.find((exercise) => exercise.value === value)?.label ??
+    ALL_EXERCISES.find((exercise) => exercise.value === value)?.label ??
     value
   );
+}
+
+export function getWorkoutExerciseLabel(
+  value: ExerciseValue,
+  customName?: string | null,
+): string {
+  return value === "OTHER" && customName?.trim()
+    ? customName.trim()
+    : getExerciseLabel(value);
 }

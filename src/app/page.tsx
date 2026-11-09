@@ -164,7 +164,7 @@ export default async function DashboardPage({
                           Reps per minute
                         </span>
                         <span className="text-sm tabular-nums">
-                          {session.repsPerMinute}
+                          {session.repsPerMinute ?? "—"}
                         </span>
                       </div>
 
@@ -175,7 +175,7 @@ export default async function DashboardPage({
                         <span className="text-sm font-semibold tabular-nums">
                           {(
                             session.durationMinutes *
-                            session.repsPerMinute
+                            (session.repsPerMinute ?? 0)
                           ).toLocaleString("en-PH")}
                         </span>
                       </div>
