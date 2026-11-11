@@ -1,9 +1,10 @@
 
 "use client";
 
-import { ChartNoAxesCombined } from "lucide-react";
+import { ChartNoAxesCombined, ChevronDown } from "lucide-react";
 import {
   Area,
+  AreaChart,
   CartesianGrid,
   ComposedChart,
   ResponsiveContainer,
@@ -30,15 +31,103 @@ export type PerformancePoint = {
 };
 
 const ALL_SERIES = [
-  { key: "repsPerMinute", valueKey: "repsPerMinute", label: "Reps / min", metric: "rate", color: "var(--accent)", gradient: "rateAreaFill" },
-  { key: "totalReps", valueKey: "totalReps", label: "Total reps", metric: "reps", color: "#6fa8e8", gradient: "repsAreaFill" },
-  { key: "durationMinutes", valueKey: "durationMinutes", label: "Duration", metric: "duration", color: "#b18ad1", gradient: "durationAreaFill" },
+  { key: "repsPerMinute", label: "Reps / min", metric: "rate", color: "var(--accent)", gradient: "rateAreaFill" },
+  { key: "totalReps", label: "Total reps", metric: "reps", color: "#6fa8e8", gradient: "repsAreaFill" },
+  { key: "durationMinutes", label: "Duration", metric: "duration", color: "#b18ad1", gradient: "durationAreaFill" },
 ] as const;
 
 function formatActualValue(value: number, metric: Metric) {
   if (metric === "duration") return `${formatNumber(value)} min`;
   if (metric === "rate") return `${formatNumber(value, 1)} reps/min`;
   return formatNumber(value);
+}
+
+function AllMetricsCharts({ data }: { data: PerformancePoint[] }) {
+  return (
+    <div className="flex h-full min-h-0 flex-col divide-y divide-border">
+      {ALL_SERIES.map((series, index) => (
+        <section
+          key={series.key}
+          aria-label={`${series.label} over time`}
+          className="grid min-h-0 flex-1 grid-rows-[16px_minmax(0,1fr)] py-1"
+        >
+          <h3 className="px-1 text-[10px] font-semibold leading-4 text-muted">
+            {series.label}
+          </h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={data}
+              margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient
+                  id={series.gradient}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={series.color} stopOpacity={0.24} />
+                  <stop offset="100%" stopColor={series.color} stopOpacity={0.015} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                vertical={false}
+                stroke="var(--border)"
+                strokeDasharray="3 3"
+              />
+              <XAxis
+                dataKey="dateLabel"
+                height={index === ALL_SERIES.length - 1 ? 20 : 0}
+                tick={index === ALL_SERIES.length - 1 ? { fill: "var(--muted)", fontSize: 9 } : false}
+                axisLine={false}
+                tickLine={false}
+                minTickGap={24}
+              />
+              <YAxis
+                width={42}
+                allowDecimals={series.metric === "rate"}
+                tickFormatter={(value: number) =>
+                  formatNumber(value, series.metric === "rate" ? 1 : 0)
+                }
+                tick={{ fill: "var(--muted)", fontSize: 9 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                labelFormatter={(_, payload) =>
+                  payload?.[0]?.payload?.date
+                    ? formatDate(payload[0].payload.date)
+                    : ""
+                }
+                formatter={(value) => [
+                  formatActualValue(Number(value), series.metric),
+                  series.label,
+                ]}
+                contentStyle={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 12,
+                  color: "var(--foreground)",
+                  fontSize: 11,
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey={series.key}
+                name={series.label}
+                stroke={series.color}
+                fill={`url(#${series.gradient})`}
+                strokeWidth={2}
+                activeDot={{ r: 4, strokeWidth: 0 }}
+                dot={{ r: 2, fill: series.color, stroke: "var(--surface)", strokeWidth: 1 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </section>
+      ))}
+    </div>
+  );
 }
 
 export default function PerformanceChart({
@@ -56,15 +145,6 @@ export default function PerformanceChart({
   periodLabel: string;
   exerciseLabel: string;
 }) {
-  const allMetricsMaximum = Math.max(
-    0,
-    ...data.flatMap((point) => [
-      point.repsPerMinute,
-      point.totalReps,
-      point.durationMinutes,
-    ]),
-  );
-
   return (
     <article className="min-w-0 rounded-2xl border border-border bg-surface p-4 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -73,21 +153,38 @@ export default function PerformanceChart({
             Performance Over Time
           </h2>
           <p className="mt-1 text-sm text-muted">
-            {metric === "all" ? "Actual values" : metricLabel} · {periodLabel}
+            {metric === "all" ? "Separate scales" : metricLabel} · {periodLabel}
           </p>
         </div>
 
-        <div
-          className="flex w-fit flex-wrap rounded-xl border border-border bg-background p-1"
-          aria-label="Chart metric"
-        >
+        <label className="relative flex w-full shrink-0 items-center sm:hidden">
+          <span className="sr-only">Performance metric</span>
+          <select
+            value={metric}
+            onChange={(event) => onMetricChange(event.target.value as Metric)}
+            className="h-10 w-full appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-sm font-medium text-foreground outline-none transition-colors hover:border-foreground/40 focus:border-brand"
+          >
+            {METRICS.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={16}
+            aria-hidden="true"
+            className="pointer-events-none absolute right-3 text-muted"
+          />
+        </label>
+
+        <div className="hidden w-fit flex-wrap rounded-xl border border-border bg-background p-1 sm:flex">
           {METRICS.map((item) => (
             <button
               key={item.value}
               type="button"
               onClick={() => onMetricChange(item.value)}
               aria-pressed={metric === item.value}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
                 metric === item.value
                   ? "bg-foreground text-background"
                   : "text-muted hover:text-foreground"
@@ -102,19 +199,8 @@ export default function PerformanceChart({
       {metric === "all" && (
         <>
           <p className="mt-3 text-[11px] leading-4 text-muted">
-            Lines use a shared numeric scale; hover to see each metric and its unit.
+            Each graph has its own scale. Hover a line for exact values.
           </p>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2" aria-label="Chart legend">
-            {ALL_SERIES.map((series) => (
-              <span key={series.key} className="inline-flex items-center gap-2 text-xs text-muted">
-                <svg width="28" height="12" viewBox="0 0 28 12" aria-hidden="true">
-                  <line x1="1" y1="6" x2="27" y2="6" stroke={series.color} strokeWidth="2" />
-                  <circle cx="14" cy="6" r="3" fill={series.color} stroke="var(--surface)" strokeWidth="1" />
-                </svg>
-                {series.label}
-              </span>
-            ))}
-          </div>
         </>
       )}
 
@@ -136,6 +222,8 @@ export default function PerformanceChart({
               Choose another range or log a workout.
             </p>
           </div>
+        ) : metric === "all" ? (
+          <AllMetricsCharts data={data} />
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
@@ -161,19 +249,6 @@ export default function PerformanceChart({
                     stopOpacity={0.01}
                   />
                 </linearGradient>
-                {metric === "all" && ALL_SERIES.map((series) => (
-                  <linearGradient
-                    key={series.gradient}
-                    id={series.gradient}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor={series.color} stopOpacity={0.2} />
-                    <stop offset="100%" stopColor={series.color} stopOpacity={0.015} />
-                  </linearGradient>
-                ))}
               </defs>
 
               <CartesianGrid
@@ -193,7 +268,6 @@ export default function PerformanceChart({
               <YAxis
                 width={48}
                 allowDecimals={metric === "rate"}
-                domain={metric === "all" ? [0, allMetricsMaximum] : undefined}
                 tickFormatter={(value: number) =>
                   formatNumber(value, metric === "rate" ? 1 : 0)
                 }
@@ -208,16 +282,7 @@ export default function PerformanceChart({
                     ? formatDate(payload[0].payload.date)
                     : ""
                 }
-                formatter={(value, name, item) => {
-                  if (metric === "all") {
-                    const series = ALL_SERIES.find((entry) => entry.label === name);
-                    const actual = Number(item.payload?.[series?.valueKey ?? ""] ?? 0);
-                    return [
-                      formatActualValue(actual, series?.metric ?? "rate"),
-                      String(name),
-                    ];
-                  }
-
+                formatter={(value) => {
                   const formatted =
                     metric === "duration"
                       ? `${formatNumber(Number(value))} min`
@@ -233,35 +298,19 @@ export default function PerformanceChart({
                 }}
               />
 
-              {metric === "all" ? (
-                ALL_SERIES.map((series) => (
-                  <Area
-                    key={series.key}
-                    type="monotone"
-                    dataKey={series.key}
-                    name={series.label}
-                    stroke={series.color}
-                    fill={`url(#${series.gradient})`}
-                    strokeWidth={2.5}
-                    activeDot={{ r: 5, strokeWidth: 0 }}
-                    dot={{ r: 3, fill: series.color, stroke: "var(--surface)", strokeWidth: 1 }}
-                  />
-                ))
-              ) : (
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="var(--accent)"
-                  strokeWidth={2.5}
-                  fill="url(#exerciseTrendFill)"
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                  dot={{
-                    r: 3,
-                    fill: "var(--accent)",
-                    strokeWidth: 0,
-                  }}
-                />
-              )}
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="var(--accent)"
+                strokeWidth={2.5}
+                fill="url(#exerciseTrendFill)"
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                dot={{
+                  r: 3,
+                  fill: "var(--accent)",
+                  strokeWidth: 0,
+                }}
+              />
             </ComposedChart>
           </ResponsiveContainer>
         )}

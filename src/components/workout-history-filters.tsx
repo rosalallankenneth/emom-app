@@ -27,9 +27,9 @@ export default function WorkoutHistoryFilters({
     <form
       action="/workouts"
       method="GET"
-      className="grid items-end gap-4 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4"
+      className="grid grid-cols-2 items-end gap-3 rounded-2xl border border-border bg-surface p-3 sm:gap-4 sm:p-4 lg:grid-cols-4"
     >
-      <label className="flex flex-col gap-2 text-sm font-medium">
+      <label className="col-span-2 flex flex-col gap-1.5 text-xs font-medium sm:gap-2 sm:text-sm lg:col-span-1">
         Exercise
         <select
           name="exercise"
@@ -46,8 +46,8 @@ export default function WorkoutHistoryFilters({
         </select>
       </label>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">
+      <div className="space-y-1.5 sm:space-y-2">
+        <label className="block text-xs font-medium sm:text-sm">
           From
         </label>
 
@@ -58,8 +58,8 @@ export default function WorkoutHistoryFilters({
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium">
+      <div className="space-y-1.5 sm:space-y-2">
+        <label className="block text-xs font-medium sm:text-sm">
           To
         </label>
 
@@ -70,7 +70,7 @@ export default function WorkoutHistoryFilters({
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="col-span-2 flex gap-2 lg:col-span-1">
         <button
           type="submit"
           className="h-11 flex-1 rounded-xl bg-foreground px-4 text-sm font-semibold text-background"

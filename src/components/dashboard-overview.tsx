@@ -194,29 +194,30 @@ export default function DashboardOverview({
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
           {stats.map((stat) => (
             <article
               key={stat.label}
-              className="rounded-2xl border border-border bg-surface p-5 sm:p-6"
+              className="min-w-0 rounded-2xl border border-border bg-surface px-2 py-3 sm:p-5 xl:p-6"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted">{stat.label}</p>
+              <div className="flex items-center justify-between gap-1 sm:gap-3">
+                <p className="min-w-0 break-words text-[10px] leading-3 text-muted sm:text-sm sm:leading-normal">{stat.label}</p>
 
-                <span className="flex size-9 items-center justify-center rounded-xl bg-background text-muted">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-background text-muted sm:size-9 sm:rounded-xl">
                   <stat.icon
                     size={18}
+                    className="size-3.5 sm:size-[18px]"
                     strokeWidth={1.8}
                     aria-hidden="true"
                   />
                 </span>
               </div>
 
-              <p className="mt-5 text-3xl font-semibold tracking-tight tabular-nums">
+              <p className="mt-3 break-words text-lg font-semibold tracking-tight tabular-nums sm:mt-5 sm:text-3xl">
                 {stat.value}
               </p>
 
-              <p className="mt-2 text-xs text-muted">{stat.detail}</p>
+              <p className="mt-1 break-words text-[9px] leading-3 text-muted sm:mt-2 sm:text-xs sm:leading-normal">{stat.detail}</p>
             </article>
           ))}
         </div>
@@ -247,7 +248,7 @@ export default function DashboardOverview({
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 sm:items-end">
+              <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:items-end">
                 <div
                   className="flex w-fit rounded-xl border border-border bg-background p-1"
                   aria-label="Chart metric"
@@ -269,7 +270,7 @@ export default function DashboardOverview({
                   ))}
                 </div>
                 {metric === "all" && (
-                  <p className="whitespace-nowrap text-[11px] leading-4 text-muted sm:text-right">
+                  <p className="break-words text-[11px] leading-4 text-muted sm:whitespace-nowrap sm:text-right">
                     Each metric is scaled to its own maximum. Hover for actual values.
                   </p>
                 )}
@@ -306,7 +307,7 @@ export default function DashboardOverview({
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={chartData}
-                    margin={{ top: 12, right: 8, left: 8, bottom: 42 }}
+                    margin={{ top: 12, right: 8, left: 0, bottom: 42 }}
                   >
                     <CartesianGrid
                       vertical={false}
@@ -326,7 +327,8 @@ export default function DashboardOverview({
                     <YAxis
                       allowDecimals={metric === "all"}
                       domain={metric === "all" ? [0, 100] : undefined}
-                      width={52}
+                      width={46}
+                      tickMargin={2}
                       tick={{ fill: "var(--muted)", fontSize: 11 }}
                       axisLine={false}
                       tickLine={false}

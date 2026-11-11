@@ -6,6 +6,7 @@ import AppShell from "@/components/app-shell";
 import DeleteWorkoutButton from "@/components/delete-workout-button";
 import EditWorkoutModal from "@/components/edit-workout-modal";
 import WorkoutHistoryFilters from "@/components/workout-history-filters";
+import WorkoutHistorySummary from "@/components/workout-history-summary";
 import { ALL_EXERCISES, EXERCISES, getWorkoutExerciseLabel } from "@/lib/exercises";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/require-auth";
@@ -297,32 +298,7 @@ export default async function WorkoutHistoryPage({
           initialTo={to ?? ""}
         />
 
-        {/* Compact workout statistics */}
-        <section aria-label="Workout statistics">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
-            {summaryCards.map((card) => (
-              <article
-                key={card.label}
-                className="min-w-0 rounded-xl border border-border bg-surface px-3 py-3"
-              >
-                <p className="text-[11px] font-medium leading-4 text-muted">
-                  {card.label}
-                </p>
-
-                <p
-                  className="mt-1.5 break-words text-lg font-semibold leading-6 tracking-tight tabular-nums"
-                  title={card.value}
-                >
-                  {card.value}
-                </p>
-
-                <p className="mt-1 truncate text-[11px] leading-4 text-muted">
-                  {card.detail}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <WorkoutHistorySummary cards={summaryCards} />
 
 
         {/* Workout history with independently scrollable rows */}

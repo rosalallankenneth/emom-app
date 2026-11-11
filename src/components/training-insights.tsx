@@ -170,15 +170,15 @@ function StatCard({
   icon: typeof Activity;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5">
+    <section className="min-w-0 rounded-2xl border border-border bg-surface p-3 sm:p-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-muted">{label}</p>
-        <Icon size={18} className="text-muted" aria-hidden="true" />
+        <p className="text-xs font-medium text-muted sm:text-sm">{label}</p>
+        <Icon size={16} className="shrink-0 text-muted sm:size-[18px]" aria-hidden="true" />
       </div>
-      <p className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+      <p className="mt-3 break-words text-xl font-bold tracking-tight sm:mt-5 sm:text-3xl">
         {value}
       </p>
-      <p className="mt-2 text-xs text-muted">{description}</p>
+      <p className="mt-1 text-[10px] leading-4 text-muted sm:mt-2 sm:text-xs">{description}</p>
     </section>
   );
 }
@@ -278,6 +278,10 @@ export default function TrainingInsights({
   const standardCurrentSessions = currentSessions.filter(
     (session) => session.exercise !== "OTHER",
   );
+  const standardTrainingMinutes = standardCurrentSessions.reduce(
+    (total, session) => total + session.durationMinutes,
+    0,
+  );
 
   const distribution = EXERCISES.map((exercise) => {
     const exerciseSessions = currentSessions.filter(
@@ -289,13 +293,18 @@ export default function TrainingInsights({
     );
 
     const lastSession = allExerciseSessions.at(-1) ?? null;
+    const minutes = exerciseSessions.reduce(
+      (total, session) => total + session.durationMinutes,
+      0,
+    );
 
     return {
       ...exercise,
       count: exerciseSessions.length,
+      minutes,
       percentage:
-        standardCurrentSessions.length > 0
-          ? (exerciseSessions.length / standardCurrentSessions.length) * 100
+        standardTrainingMinutes > 0
+          ? (minutes / standardTrainingMinutes) * 100
           : 0,
       lastDate: lastSession?.workoutDate ?? null,
       daysSince:
@@ -417,7 +426,7 @@ export default function TrainingInsights({
 
       <p className="text-xs text-muted">{periodDescription}</p>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 xl:grid-cols-4">
         <StatCard
           label="Training sessions"
           value={formatNumber(summary.sessions)}
@@ -455,7 +464,7 @@ export default function TrainingInsights({
           <div>
             <h2 className="text-lg font-bold">Training Distribution</h2>
             <p className="mt-1 text-sm text-muted">
-              How your standard exercise sessions are divided across the eight movements.
+              How your standard exercise training time is divided across the eight movements.
             </p>
           </div>
 
@@ -467,8 +476,7 @@ export default function TrainingInsights({
                     {exercise.label}
                   </span>
                   <span className="shrink-0 text-xs tabular-nums text-muted">
-                    {exercise.count}{" "}
-                    {exercise.count === 1 ? "session" : "sessions"}
+                    {formatNumber(exercise.minutes)} min
                     {" · "}
                     {exercise.percentage.toFixed(0)}%
                   </span>
@@ -477,7 +485,7 @@ export default function TrainingInsights({
                 <div
                   className="h-2 overflow-hidden rounded-full bg-background"
                   role="progressbar"
-                  aria-label={`${exercise.label} share of sessions`}
+                  aria-label={`${exercise.label} share of training time`}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={Math.round(exercise.percentage)}

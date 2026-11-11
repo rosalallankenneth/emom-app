@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { ExerciseSession } from "./exercise-analytics/analytics-utils";
 import { formatDate } from "./exercise-analytics/analytics-utils";
@@ -14,11 +15,92 @@ type ActivityDay = {
   future: boolean;
 };
 
+function ActivityTooltip({
+  day,
+  anchor,
+}: {
+  day: ActivityDay;
+  anchor: HTMLElement;
+}) {
+  const [position, setPosition] = useState<{
+    left: number;
+    top: number;
+    below: boolean;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const updatePosition = () => {
+      const rect = anchor.getBoundingClientRect();
+      const halfTooltipWidth = Math.min(112, (window.innerWidth - 24) / 2);
+      const center = rect.left + rect.width / 2;
+      const left = Math.max(
+        halfTooltipWidth + 12,
+        Math.min(window.innerWidth - halfTooltipWidth - 12, center),
+      );
+      const below = rect.top < 100;
+
+      setPosition({
+        left,
+        top: below ? rect.bottom + 8 : rect.top - 8,
+        below,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [anchor]);
+
+  if (!position) return null;
+
+  return createPortal(
+    <div
+      role="tooltip"
+      className="pointer-events-none fixed z-[100] w-max max-w-[calc(100vw-24px)] rounded-lg border border-border bg-surface px-3 py-2 text-xs shadow-lg"
+      style={{
+        left: position.left,
+        top: position.top,
+        transform: position.below
+          ? "translateX(-50%)"
+          : "translate(-50%, -100%)",
+      }}
+    >
+      <p className="font-medium">{formatDate(day.date)}</p>
+      <p className="mt-1 text-muted">
+        {day.future
+          ? "Upcoming date"
+          : `${day.minutes} min trained · ${day.count} ${
+              day.count === 1 ? "session" : "sessions"
+            }`}
+      </p>
+    </div>,
+    document.body,
+  );
+}
+
 export default function TrainingActivityCalendar({
   sessions,
 }: {
   sessions: ExerciseSession[];
 }) {
+  const [activeTooltip, setActiveTooltip] = useState<{
+    day: ActivityDay;
+    anchor: HTMLElement;
+  } | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    container.scrollLeft = container.scrollWidth;
+  }, []);
+
   const calendar = useMemo(() => {
     const today = new Date();
     const todayKey = [
@@ -146,14 +228,16 @@ export default function TrainingActivityCalendar({
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto pb-2">
-        <div className="min-w-[620px]">
-          <div
-            className="mb-2 grid gap-1 text-xs text-muted"
-            style={{
-              gridTemplateColumns: `repeat(${calendar.weeks.length}, minmax(0, 1fr))`,
-            }}
-          >
+      <div ref={scrollContainerRef} className="mt-6 overflow-x-auto pb-2">
+        <div className="min-w-[900px] sm:min-w-full">
+          <div className="mb-2 flex gap-3 text-xs text-muted">
+            <span className="w-6 shrink-0" aria-hidden="true" />
+            <div
+              className="grid flex-1 gap-1.5 sm:gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${calendar.weeks.length}, minmax(10px, 1fr))`,
+              }}
+            >
             {calendar.weeks.map((_, index) => {
               const month = calendar.monthLabels.find(
                 (item) => item.column === index,
@@ -165,10 +249,11 @@ export default function TrainingActivityCalendar({
                 </span>
               );
             })}
+            </div>
           </div>
 
           <div className="flex gap-3">
-            <div className="grid shrink-0 grid-rows-7 gap-1 text-[10px] text-muted">
+            <div className="grid w-6 shrink-0 grid-rows-7 gap-1.5 text-[10px] text-muted sm:gap-1">
               <span>Sun</span>
               <span />
               <span>Tue</span>
@@ -179,23 +264,38 @@ export default function TrainingActivityCalendar({
             </div>
 
             <div
-              className="grid flex-1 gap-1"
+              className="grid flex-1 gap-1.5 sm:gap-1"
               style={{
-                gridTemplateColumns: `repeat(${calendar.weeks.length}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${calendar.weeks.length}, minmax(10px, 1fr))`,
               }}
             >
               {calendar.weeks.map((week, weekIndex) => (
                 <div
                   key={weekIndex}
-                  className="grid grid-rows-7 gap-1"
+                  className="grid grid-rows-7 gap-1.5 sm:gap-1"
                 >
                   {week.map((day) => (
                     <div
                       key={day.date}
                       className="group relative aspect-square w-full"
+                      onMouseEnter={(event) =>
+                        setActiveTooltip({ day, anchor: event.currentTarget })
+                      }
+                      onMouseLeave={(event) => {
+                        if (!event.currentTarget.contains(document.activeElement)) {
+                          setActiveTooltip(null);
+                        }
+                      }}
                     >
                       <div
                         tabIndex={day.future ? -1 : 0}
+                        onFocus={(event) =>
+                          setActiveTooltip({
+                            day,
+                            anchor: event.currentTarget.parentElement!,
+                          })
+                        }
+                        onBlur={() => setActiveTooltip(null)}
                         aria-label={`${formatDate(day.date)}: ${day.minutes} minutes trained, ${
                           day.count
                         } ${day.count === 1 ? "session" : "sessions"}`}
@@ -204,22 +304,6 @@ export default function TrainingActivityCalendar({
                         }`}
                       />
 
-                      <div
-                        role="tooltip"
-                        className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 hidden w-max max-w-56 -translate-x-1/2 rounded-lg border border-border bg-surface px-3 py-2 text-xs shadow-lg group-hover:block group-focus-within:block"
-                      >
-                        <p className="font-medium">
-                          {formatDate(day.date)}
-                        </p>
-
-                        <p className="mt-1 text-muted">
-                          {day.future
-                            ? "Upcoming date"
-                            : `${day.minutes} min trained · ${day.count} ${
-                                day.count === 1 ? "session" : "sessions"
-                              }`}
-                        </p>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -228,6 +312,13 @@ export default function TrainingActivityCalendar({
           </div>
         </div>
       </div>
+
+      {activeTooltip && (
+        <ActivityTooltip
+          day={activeTooltip.day}
+          anchor={activeTooltip.anchor}
+        />
+      )}
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-muted">
         <span>{totalMinutes.toLocaleString()} minutes trained all-time</span>

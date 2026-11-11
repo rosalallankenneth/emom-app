@@ -45,7 +45,7 @@ export default function WorkoutForm({
   const onSuccessRef = useRef(onSuccess);
 
   const [exercise, setExercise] = useState("PULL_UPS");
-  const [duration, setDuration] = useState(20);
+  const [duration, setDuration] = useState(10);
   const [workoutDate, setWorkoutDate] = useState("");
 
   useEffect(() => {

@@ -60,20 +60,20 @@ export default function StatCard({
   comparison?: { current: number; previous: number } | null;
 }) {
   return (
-    <article className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+    <article className="min-w-0 rounded-2xl border border-border bg-surface p-3 sm:p-5 xl:p-6">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted">{label}</p>
+        <p className="text-xs text-muted sm:text-sm">{label}</p>
 
-        <span className="flex size-9 items-center justify-center rounded-xl bg-background text-muted">
-          <Icon size={18} strokeWidth={1.8} aria-hidden="true" />
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background text-muted sm:size-9 sm:rounded-xl">
+          <Icon className="size-4 sm:size-[18px]" strokeWidth={1.8} aria-hidden="true" />
         </span>
       </div>
 
-      <p className="mt-5 text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
+      <p className="mt-3 break-words text-xl font-semibold tracking-tight tabular-nums sm:mt-5 sm:text-3xl">
         {value}
       </p>
 
-      <p className="mt-2 text-xs text-muted">{detail}</p>
+      <p className="mt-1 text-[10px] leading-4 text-muted sm:mt-2 sm:text-xs">{detail}</p>
 
       {comparison && (
         <div className="mt-3">
