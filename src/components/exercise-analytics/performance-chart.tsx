@@ -24,21 +24,24 @@ export type PerformancePoint = {
   id: string;
   date: string;
   dateLabel: string;
-  value: number;
+  value: number | null;
   durationMinutes: number;
   repsPerMinute: number;
   totalReps: number;
+  externalLoadKg: number;
 };
 
 const ALL_SERIES = [
   { key: "repsPerMinute", label: "Reps / min", metric: "rate", color: "var(--accent)", gradient: "rateAreaFill" },
-  { key: "totalReps", label: "Total reps", metric: "reps", color: "#6fa8e8", gradient: "repsAreaFill" },
   { key: "durationMinutes", label: "Duration", metric: "duration", color: "#b18ad1", gradient: "durationAreaFill" },
+  { key: "totalReps", label: "Total Reps", metric: "reps", color: "#e3a550", gradient: "repsAreaFill" },
+  { key: "externalLoadKg", label: "External Load", metric: "externalLoad", color: "#6fa8e8", gradient: "loadAreaFill" },
 ] as const;
 
 function formatActualValue(value: number, metric: Metric) {
   if (metric === "duration") return `${formatNumber(value)} min`;
   if (metric === "rate") return `${formatNumber(value, 1)} reps/min`;
+  if (metric === "externalLoad") return `${formatNumber(value, 1)} kg`;
   return formatNumber(value);
 }
 
@@ -86,9 +89,9 @@ function AllMetricsCharts({ data }: { data: PerformancePoint[] }) {
               />
               <YAxis
                 width={42}
-                allowDecimals={series.metric === "rate"}
+                allowDecimals={series.metric === "rate" || series.metric === "externalLoad"}
                 tickFormatter={(value: number) =>
-                  formatNumber(value, series.metric === "rate" ? 1 : 0)
+                  formatNumber(value, series.metric === "rate" || series.metric === "externalLoad" ? 1 : 0)
                 }
                 tick={{ fill: "var(--muted)", fontSize: 9 }}
                 axisLine={false}
@@ -116,6 +119,7 @@ function AllMetricsCharts({ data }: { data: PerformancePoint[] }) {
                 type="monotone"
                 dataKey={series.key}
                 name={series.label}
+                connectNulls={false}
                 stroke={series.color}
                 fill={`url(#${series.gradient})`}
                 strokeWidth={2}
@@ -157,12 +161,12 @@ export default function PerformanceChart({
           </p>
         </div>
 
-        <label className="relative flex w-full shrink-0 items-center sm:hidden">
+        <label className="relative flex w-fit shrink-0 items-center sm:hidden">
           <span className="sr-only">Performance metric</span>
           <select
             value={metric}
             onChange={(event) => onMetricChange(event.target.value as Metric)}
-            className="h-10 w-full appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-sm font-medium text-foreground outline-none transition-colors hover:border-foreground/40 focus:border-brand"
+            className="h-9 min-w-40 appearance-none rounded-xl border border-border bg-background pl-2.5 pr-9 text-xs font-medium text-foreground outline-none transition-colors hover:border-foreground/40 focus:border-brand"
           >
             {METRICS.map((item) => (
               <option key={item.value} value={item.value}>
@@ -177,14 +181,14 @@ export default function PerformanceChart({
           />
         </label>
 
-        <div className="hidden w-fit flex-wrap rounded-xl border border-border bg-background p-1 sm:flex">
+        <div className="hidden w-fit flex-nowrap rounded-xl border border-border bg-background p-1 sm:flex">
           {METRICS.map((item) => (
             <button
               key={item.value}
               type="button"
               onClick={() => onMetricChange(item.value)}
               aria-pressed={metric === item.value}
-              className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap rounded-lg px-2 py-1.5 text-[10px] font-semibold transition-colors ${
                 metric === item.value
                   ? "bg-foreground text-background"
                   : "text-muted hover:text-foreground"
@@ -204,7 +208,13 @@ export default function PerformanceChart({
         </>
       )}
 
-      <div className="mt-6 h-[300px] w-full sm:h-[350px]">
+      <div
+        className={`mt-6 w-full ${
+          metric === "all"
+            ? "h-[420px] sm:h-[480px]"
+            : "h-[300px] sm:h-[350px]"
+        }`}
+      >
         {data.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center text-center">
             <ChartNoAxesCombined
@@ -267,9 +277,9 @@ export default function PerformanceChart({
 
               <YAxis
                 width={48}
-                allowDecimals={metric === "rate"}
+                allowDecimals={metric === "rate" || metric === "externalLoad"}
                 tickFormatter={(value: number) =>
-                  formatNumber(value, metric === "rate" ? 1 : 0)
+                  formatNumber(value, metric === "rate" || metric === "externalLoad" ? 1 : 0)
                 }
                 tick={{ fill: "var(--muted)", fontSize: 11 }}
                 axisLine={false}
@@ -286,6 +296,8 @@ export default function PerformanceChart({
                   const formatted =
                     metric === "duration"
                       ? `${formatNumber(Number(value))} min`
+                      : metric === "externalLoad"
+                        ? `${formatNumber(Number(value), 1)} kg`
                       : formatNumber(Number(value), metric === "rate" ? 1 : 0);
                   return [formatted, metricLabel];
                 }}

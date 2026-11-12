@@ -121,15 +121,18 @@ export default function ExerciseAnalytics({
         dateLabel: formatDate(session.workoutDate),
         value:
           metric === "all"
-            ? 0
+            ? null
             : metric === "rate"
               ? session.repsPerMinute
-              : metric === "reps"
-                ? getTotalReps(session)
-                : session.durationMinutes,
+              : metric === "externalLoad"
+                ? session.externalLoadKg
+                : metric === "duration"
+                  ? session.durationMinutes
+                  : getTotalReps(session),
         durationMinutes: session.durationMinutes,
         repsPerMinute: session.repsPerMinute,
         totalReps: getTotalReps(session),
+        externalLoadKg: session.externalLoadKg ?? 0,
       }));
     },
     [currentSessions, metric],

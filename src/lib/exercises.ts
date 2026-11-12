@@ -17,7 +17,7 @@ export type StandardExerciseValue = Exclude<ExerciseValue, "OTHER">;
 export const EXERCISES = [
   { value: "PULL_UPS", label: "Pull-ups" },
   { value: "PUSH_UPS", label: "Push-ups" },
-  { value: "ROWS", label: "Rows" },
+  { value: "ROWS", label: "Inverted Rows" },
   { value: "DIPS", label: "Dips" },
   { value: "PIKE_PUSH_UPS", label: "Pike push-ups" },
   { value: "SQUATS", label: "Squats" },
